@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { formatPrice } from "@/lib/utils";
 
 interface FavoriteDish {
   _id: string;
@@ -128,7 +129,7 @@ export default function FavoritesPage() {
       // Use demo token if in demo mode, otherwise use stored token
       const token =
         process.env.NODE_ENV === "development" &&
-        user?.email === "demo@tarkari.com"
+          user?.email === "demo@tarkari.com"
           ? "demo-token"
           : localStorage.getItem("auth_token");
 
@@ -279,10 +280,7 @@ export default function FavoritesPage() {
                   {favorites.length} Favorite{favorites.length !== 1 ? "s" : ""}
                 </h3>
                 <p className="text-sm text-dark-green/60">
-                  Total: ₹
-                  {(
-                    favorites.reduce((sum, d) => sum + d.pricePaise, 0) / 100
-                  ).toFixed(0)}
+                  {formatPrice(favorites.reduce((sum, d) => sum + d.pricePaise, 0))}
                 </p>
               </div>
               <div className="flex gap-3">
@@ -376,7 +374,7 @@ export default function FavoritesPage() {
 
                     {/* Order Stats */}
                     {(dish.orderCount && dish.orderCount > 0) ||
-                    dish.lastOrderedAt ? (
+                      dish.lastOrderedAt ? (
                       <div className="flex items-center gap-3 mb-4 text-xs text-dark-green/60">
                         {dish.orderCount && dish.orderCount > 0 && (
                           <div className="flex items-center gap-1">
@@ -395,7 +393,7 @@ export default function FavoritesPage() {
 
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold text-tomato-red">
-                        ₹{(dish.pricePaise / 100).toFixed(0)}
+                        {formatPrice(dish.pricePaise)}
                       </span>
                       <button
                         onClick={() => addToCart(dish)}

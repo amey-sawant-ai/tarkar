@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  IndianRupee,
   ShoppingBag,
   Users,
   Star,
@@ -12,7 +12,7 @@ import {
   Download,
   RefreshCw,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface ReportData {
@@ -73,8 +73,7 @@ export default function AdminReportsPage() {
     }
   }
 
-  const formatCurrency = (amount: number) =>
-    `₹${(amount / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -132,11 +131,11 @@ export default function AdminReportsPage() {
                 <div>
                   <p className="text-sm text-gray-500">Total Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(data.summary.totalRevenue)}
+                    {formatPrice(data.summary.totalRevenue)}
                   </p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+                  <IndianRupee className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </div>
@@ -160,7 +159,7 @@ export default function AdminReportsPage() {
                 <div>
                   <p className="text-sm text-gray-500">Avg Order Value</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(data.summary.averageOrderValue)}
+                    {formatPrice(data.summary.averageOrderValue)}
                   </p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
@@ -239,14 +238,14 @@ export default function AdminReportsPage() {
                                 Math.max(
                                   ...data.revenueByDay.map((d) => d.revenue),
                                 )) *
-                                100,
+                              100,
                               100,
                             )}%`,
                           }}
                         />
                       </div>
                       <span className="text-sm font-medium w-24 text-right">
-                        {formatCurrency(day.revenue)}
+                        {formatPrice(day.revenue)}
                       </span>
                     </div>
                   ))}
@@ -287,7 +286,7 @@ export default function AdminReportsPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-medium">
-                          {formatCurrency(dish.revenue)}
+                          {formatPrice(dish.revenue)}
                         </p>
                         <p className="text-xs text-gray-500">
                           {dish.quantity} orders
@@ -346,7 +345,7 @@ export default function AdminReportsPage() {
                         {item.category}
                       </span>
                       <span className="font-medium">
-                        {formatCurrency(item.revenue)}
+                        {formatPrice(item.revenue)}
                       </span>
                     </div>
                   ))}

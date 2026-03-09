@@ -15,7 +15,7 @@ import {
   ChefHat,
   Package,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface OrderItem {
@@ -138,7 +138,7 @@ export default function AdminOrdersPage() {
     fetchOrders();
   };
 
-  const formatPrice = (paise: number) => `₹${(paise / 100).toFixed(2)}`;
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {

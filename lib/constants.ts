@@ -3,6 +3,8 @@
  * Centralized location for all magic numbers, strings, and config values
  */
 
+import type { OrderStatus } from "./types";
+
 // ============================================================================
 // COMPANY INFORMATION
 // ============================================================================
@@ -76,10 +78,10 @@ export const CURRENCY = {
 } as const;
 
 export const PRICING = {
-  deliveryFee: 20,
-  taxPercent: 18,
-  minOrderAmount: 150,
-  freeDeliveryThreshold: 500,
+  deliveryFee: 2000, // in paise (₹20)
+  taxPercent: 5,     // in percent (5%) - Standard GST for restaurants in many regions
+  minOrderAmount: 15000, // in paise (₹150)
+  freeDeliveryThreshold: 50000, // in paise (₹500)
 } as const;
 
 // ============================================================================
@@ -95,8 +97,6 @@ export const ORDER_STATUS = {
   DELIVERED: "delivered",
   CANCELLED: "cancelled",
 } as const;
-
-export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   [ORDER_STATUS.ORDER_PLACED]: "Order Placed",
@@ -131,49 +131,12 @@ export const TRANSACTION_TYPES = {
   REFERRAL: "referral",
 } as const;
 
-export type TransactionType = (typeof TRANSACTION_TYPES)[keyof typeof TRANSACTION_TYPES];
-
-export const QUICK_ADD_AMOUNTS = [100, 200, 500, 1000, 2000] as const;
-
-// ============================================================================
-// PAYMENT METHODS
-// ============================================================================
-
 export const PAYMENT_METHOD_TYPES = {
   CARD: "card",
   UPI: "upi",
   NETBANKING: "netbanking",
   WALLET: "wallet",
 } as const;
-
-export type PaymentMethodType = (typeof PAYMENT_METHOD_TYPES)[keyof typeof PAYMENT_METHOD_TYPES];
-
-// ============================================================================
-// MENU CATEGORIES
-// ============================================================================
-
-export const MENU_CATEGORIES = [
-  "All",
-  "North Indian",
-  "South Indian",
-  "Chinese",
-  "Snacks",
-  "Beverages",
-  "Thali",
-] as const;
-
-export const DISH_TYPES = [
-  "All",
-  "Starter",
-  "Main Course",
-  "Snack",
-  "Beverage",
-  "Thali",
-] as const;
-
-// ============================================================================
-// VALIDATION
-// ============================================================================
 
 export const VALIDATION = {
   phone: {

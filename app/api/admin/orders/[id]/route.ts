@@ -33,6 +33,6 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching order:", error);
-    return apiError("Failed to fetch order", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch order", 500);
   }
 }

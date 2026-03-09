@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { NAV_LINKS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { fadeInDown, staggerContainer, staggerItem } from "@/lib/animations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -196,7 +196,7 @@ const AuthButtons = memo(function AuthButtons({
                   <p className="text-sm text-gray-500">{user.email}</p>
                   {user.walletBalancePaise !== undefined && (
                     <p className="text-xs text-primary font-medium mt-1">
-                      Wallet: ₹{(user.walletBalancePaise / 100).toFixed(2)}
+                      Wallet: {formatPrice(user.walletBalancePaise)}
                     </p>
                   )}
                 </div>

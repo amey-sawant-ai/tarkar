@@ -9,6 +9,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/utils";
 import {
   Loader2,
   Package,
@@ -108,7 +109,7 @@ export default function MyOrdersPage() {
         name: item.name,
         price: item.pricePaise,
         quantity: item.qty,
-        image: "/placeholder-dish.jpg",
+        image: "/placeholder-dish.svg",
       });
     });
     showToast(`${order.items.length} items added to cart!`, "success");
@@ -330,7 +331,7 @@ export default function MyOrdersPage() {
                         </p>
                       </div>
                       <p className="font-semibold text-dark-green">
-                        ₹{((item.pricePaise * item.qty) / 100).toFixed(0)}
+                        {formatPrice(item.pricePaise * item.qty)}
                       </p>
                     </div>
                   ))}
@@ -340,25 +341,23 @@ export default function MyOrdersPage() {
                 <div className="border-t border-dark-green/10 pt-4 space-y-2">
                   <div className="flex justify-between text-dark-green/70">
                     <span>Subtotal</span>
-                    <span>
-                      ₹{(order.billing.subTotalPaise / 100).toFixed(0)}
-                    </span>
+                    {formatPrice(order.billing.subTotalPaise)}
                   </div>
                   <div className="flex justify-between text-dark-green/70">
                     <span>Tax (5%)</span>
-                    <span>₹{(order.billing.taxPaise / 100).toFixed(0)}</span>
+                    <span>{formatPrice(order.billing.taxPaise)}</span>
                   </div>
                   {order.billing.deliveryFeePaise > 0 && (
                     <div className="flex justify-between text-dark-green/70">
                       <span>Delivery Fee</span>
                       <span>
-                        ₹{(order.billing.deliveryFeePaise / 100).toFixed(0)}
+                        {formatPrice(order.billing.deliveryFeePaise)}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg text-tomato-red border-t border-dark-green/10 pt-2">
                     <span>Total</span>
-                    <span>₹{(order.billing.totalPaise / 100).toFixed(0)}</span>
+                    <span>{formatPrice(order.billing.totalPaise)}</span>
                   </div>
                 </div>
 

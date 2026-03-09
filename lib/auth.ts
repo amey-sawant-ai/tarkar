@@ -32,47 +32,58 @@ const TOKEN_EXPIRY_MS = TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
 /**
  * Generate authentication token for a user
- * Format: base64(userId|timestamp|checksum)
+ * Format: base64(userId|timestamp|role|checksum)
  * In production, this should use JWT with proper signing
  */
-export function generateAuthToken(userId: string): string {
+export function generateAuthToken(userId: string, role: string = "user"): string {
   const timestamp = Date.now();
-  const checksum = generateChecksum(`${userId}${timestamp}`);
-  const tokenData = `${userId}|${timestamp}|${checksum}`;
-  
+  const checksum = generateChecksum(`${userId}${timestamp}${role}`);
+  const tokenData = `${userId}|${timestamp}|${role}|${checksum}`;
+
   // Encode to base64 for transport
   return Buffer.from(tokenData).toString("base64");
 }
 
 /**
  * Verify and decode authentication token
- * Returns userId if valid, null if invalid or expired
+ * Returns { userId, role } if valid, null if invalid or expired
  */
-export function verifyAuthToken(token: string): string | null {
+export function verifyAuthToken(token: string): { userId: string; role: string } | null {
   try {
     // Decode from base64
     const decoded = Buffer.from(token, "base64").toString("utf-8");
-    const [userId, timestampStr, checksum] = decoded.split("|");
-    
-    if (!userId || !timestampStr || !checksum) {
+    const parts = decoded.split("|");
+
+    // Support legacy tokens without role for migration period
+    if (parts.length === 3) {
+      const [userId, timestampStr, checksum] = parts;
+      const timestamp = parseInt(timestampStr, 10);
+      const now = Date.now();
+      if (now - timestamp > TOKEN_EXPIRY_MS) return null;
+      if (checksum !== generateChecksum(`${userId}${timestamp}`)) return null;
+      return { userId, role: "user" };
+    }
+
+    if (parts.length !== 4) {
       return null;
     }
-    
+
+    const [userId, timestampStr, role, checksum] = parts;
     const timestamp = parseInt(timestampStr, 10);
-    
+
     // Check if token is expired
     const now = Date.now();
     if (now - timestamp > TOKEN_EXPIRY_MS) {
       return null;
     }
-    
+
     // Verify checksum
-    const expectedChecksum = generateChecksum(`${userId}${timestamp}`);
+    const expectedChecksum = generateChecksum(`${userId}${timestamp}${role}`);
     if (checksum !== expectedChecksum) {
       return null;
     }
-    
-    return userId;
+
+    return { userId, role };
   } catch (error) {
     console.error("Token verification error:", error);
     return null;
@@ -88,15 +99,15 @@ function generateChecksum(data: string): string {
   // In production, use proper HMAC-SHA256 or similar
   const secret = process.env.AUTH_SECRET || "tarkari_secret_key";
   let checksum = 0;
-  
+
   for (let i = 0; i < data.length; i++) {
     checksum += data.charCodeAt(i);
   }
-  
+
   for (let i = 0; i < secret.length; i++) {
     checksum += secret.charCodeAt(i);
   }
-  
+
   return (checksum % 100000).toString();
 }
 
@@ -127,7 +138,7 @@ export async function comparePassword(password: string, hash: string): Promise<b
  */
 export function saveAuthToken(token: string): void {
   if (typeof window === "undefined") return;
-  
+
   try {
     localStorage.setItem("auth_token", token);
     localStorage.setItem("auth_token_time", Date.now().toString());
@@ -141,7 +152,7 @@ export function saveAuthToken(token: string): void {
  */
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  
+
   try {
     return localStorage.getItem("auth_token");
   } catch (error) {
@@ -155,7 +166,7 @@ export function getAuthToken(): string | null {
  */
 export function clearAuthToken(): void {
   if (typeof window === "undefined") return;
-  
+
   try {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_token_time");
@@ -170,9 +181,9 @@ export function clearAuthToken(): void {
 export function isAuthenticated(): boolean {
   const token = getAuthToken();
   if (!token) return false;
-  
-  const userId = verifyAuthToken(token);
-  return userId !== null;
+
+  const result = verifyAuthToken(token);
+  return result !== null;
 }
 
 /**
@@ -181,8 +192,9 @@ export function isAuthenticated(): boolean {
 export function getCurrentUserId(): string | null {
   const token = getAuthToken();
   if (!token) return null;
-  
-  return verifyAuthToken(token);
+
+  const result = verifyAuthToken(token);
+  return result ? result.userId : null;
 }
 
 // ============================================================================
@@ -195,7 +207,7 @@ export function getCurrentUserId(): string | null {
 export function getAuthHeader(): Record<string, string> | null {
   const token = getAuthToken();
   if (!token) return null;
-  
+
   return {
     Authorization: `Bearer ${token}`,
   };
@@ -214,7 +226,7 @@ export async function authenticatedFetch(
     ...options.headers,
     ...(authHeader || {}),
   };
-  
+
   return fetch(url, {
     ...options,
     headers,

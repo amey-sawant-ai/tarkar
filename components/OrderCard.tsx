@@ -6,6 +6,7 @@ import { Clock, CheckCircle, XCircle, Package, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatPrice } from "@/lib/utils";
 
 interface OrderItem {
   name: string;
@@ -87,7 +88,7 @@ export default function OrderCard({
             <p className="text-dark-green/60 text-sm">{date}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-tomato-red">₹{total}</p>
+            <p className="text-2xl font-bold text-tomato-red">{formatPrice(total)}</p>
             <p className="text-dark-green/60 text-sm">
               {items.length}{" "}
               {items.length > 1 ? t("order.items") : t("order.item")}
@@ -117,7 +118,7 @@ export default function OrderCard({
                 </div>
               </div>
               <p className="font-bold text-dark-green">
-                ₹{item.price * item.quantity}
+                {formatPrice(item.price * item.quantity)}
               </p>
             </div>
           ))}
@@ -128,20 +129,20 @@ export default function OrderCard({
           <div className="flex items-center justify-between text-sm">
             <span className="text-dark-green/70">{t("order.subtotal")}</span>
             <span className="font-semibold text-dark-green">
-              ₹{total - deliveryFee}
+              {formatPrice(total - deliveryFee)}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-dark-green/70">{t("order.deliveryFee")}</span>
             <span className="font-semibold text-dark-green">
-              ₹{deliveryFee}
+              {formatPrice(deliveryFee)}
             </span>
           </div>
           <div className="flex items-center justify-between text-lg pt-2 border-t border-dark-green/10">
             <span className="font-bold text-dark-green">
               {t("order.total")}
             </span>
-            <span className="font-bold text-tomato-red">₹{total}</span>
+            <span className="font-bold text-tomato-red">{formatPrice(total)}</span>
           </div>
         </div>
 

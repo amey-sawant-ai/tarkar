@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Package,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import DashboardNavbar from "@/components/DashboardNavbar";
 import { Button } from "@/components/ui/button";
+import { cn, formatPrice } from "@/lib/utils";
 import {
   trackingOrders,
   getActiveOrders,
@@ -29,17 +31,121 @@ import {
 } from "@/lib/orderTrackingData";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export default function OrderTrackingPage() {
+function OrderTrackingContent() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const orderIdParam = searchParams.get("orderId");
+
   const [selectedTab, setSelectedTab] = useState<"active" | "completed">(
     "active"
   );
   const [selectedOrder, setSelectedOrder] = useState<OrderTracking | null>(
     null
   );
+  const [realOrders, setRealOrders] = useState<OrderTracking[]>([]);
+  const [isLoadingReal, setIsLoadingReal] = useState(true);
 
-  const activeOrders = getActiveOrders();
-  const completedOrders = getCompletedOrders();
+  // Fetch real orders from database
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+          setIsLoadingReal(false);
+          return;
+        }
+
+        const res = await fetch("/api/orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          // Map DB orders to OrderTracking interface
+          const mappedOrders: OrderTracking[] = data.data.map((order: any) => ({
+            orderId: order._id,
+            orderDate: new Date(order.placedAt || order.createdAt).toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            }),
+            orderTime: new Date(order.placedAt || order.createdAt).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            status: order.status,
+            estimatedDelivery: "45-60 mins", // Fallback
+            deliveryAddress: order.address || "Self Pickup",
+            items: order.items.map((item: any) => ({
+              id: item._id || item.itemId,
+              name: item.name,
+              quantity: item.qty || item.quantity,
+              price: item.pricePaise || 0,
+            })),
+            subtotal: order.billing.subTotalPaise,
+            tax: order.billing.taxPaise,
+            deliveryFee: order.billing.deliveryFeePaise,
+            discount: order.billing.discountPaise || 0,
+            total: order.billing.totalPaise,
+            paymentMethod: order.billing.paymentMethod,
+            timeline: order.timeline.map((t: any) => ({
+              status: t.status,
+              timestamp: new Date(t.at).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              message: t.label,
+              completed: t.completed,
+            })),
+            specialInstructions: order.notes,
+          }));
+          setRealOrders(mappedOrders);
+        }
+      } catch (error) {
+        console.error("Failed to fetch real orders:", error);
+      } finally {
+        setIsLoadingReal(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  // Combine mock data with real data
+  const allOrders = useMemo(() => {
+    // Unique orders by ID
+    const seen = new Set();
+    const combined = [...realOrders, ...trackingOrders].filter(o => {
+      if (seen.has(o.orderId)) return false;
+      seen.add(o.orderId);
+      return true;
+    });
+    return combined;
+  }, [realOrders]);
+
+  const activeOrders = allOrders.filter(
+    (order) => order.status !== "delivered" && order.status !== "cancelled"
+  );
+  const completedOrders = allOrders.filter(
+    (order) => order.status === "delivered" || order.status === "cancelled"
+  );
+
+  // Handle orderId from query parameter
+  useEffect(() => {
+    if (orderIdParam && allOrders.length > 0) {
+      const order = allOrders.find((o) => o.orderId === orderIdParam);
+      if (order) {
+        setSelectedOrder(order);
+        // Switch tab if needed
+        if (order.status === "delivered" || order.status === "cancelled") {
+          setSelectedTab("completed");
+        } else {
+          setSelectedTab("active");
+        }
+      }
+    }
+  }, [orderIdParam, allOrders]);
+
   const displayOrders =
     selectedTab === "active" ? activeOrders : completedOrders;
 
@@ -72,22 +178,20 @@ export default function OrderTrackingPage() {
         >
           <Button
             onClick={() => setSelectedTab("active")}
-            className={`flex-1 py-6 rounded-xl font-bold text-lg transition-all ${
-              selectedTab === "active"
-                ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
-                : "bg-transparent text-dark-green hover:bg-dark-green/5"
-            }`}
+            className={`flex-1 py-6 rounded-xl font-bold text-lg transition-all ${selectedTab === "active"
+              ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
+              : "bg-transparent text-dark-green hover:bg-dark-green/5"
+              }`}
           >
             <Truck className="w-5 h-5 mr-2" />
             Active Orders ({activeOrders.length})
           </Button>
           <Button
             onClick={() => setSelectedTab("completed")}
-            className={`flex-1 py-6 rounded-xl font-bold text-lg transition-all ${
-              selectedTab === "completed"
-                ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
-                : "bg-transparent text-dark-green hover:bg-dark-green/5"
-            }`}
+            className={`flex-1 py-6 rounded-xl font-bold text-lg transition-all ${selectedTab === "completed"
+              ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
+              : "bg-transparent text-dark-green hover:bg-dark-green/5"
+              }`}
           >
             <CheckCircle className="w-5 h-5 mr-2" />
             Completed ({completedOrders.length})
@@ -145,8 +249,7 @@ export default function OrderTrackingPage() {
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-2xl font-bold">
-                        <IndianRupee className="w-6 h-6" />
-                        {order.total}
+                        {formatPrice(order.total)}
                       </div>
                     </div>
                   </div>
@@ -174,7 +277,7 @@ export default function OrderTrackingPage() {
                           <span>
                             {item.quantity}x {item.name}
                           </span>
-                          <span className="font-semibold">₹{item.price}</span>
+                          <span className="font-semibold">{formatPrice(item.price)}</span>
                         </p>
                       ))}
                       {order.items.length > 2 && (
@@ -287,11 +390,10 @@ export default function OrderTrackingPage() {
                         <div key={index} className="flex gap-4">
                           <div className="flex flex-col items-center">
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                step.completed
-                                  ? "bg-gradient-to-r from-green-500 to-green-600"
-                                  : "bg-gray-300"
-                              }`}
+                              className={`w-10 h-10 rounded-full flex items-center justify-center ${step.completed
+                                ? "bg-gradient-to-r from-green-500 to-green-600"
+                                : "bg-gray-300"
+                                }`}
                             >
                               {step.completed ? (
                                 <CheckCircle className="w-5 h-5 text-white" />
@@ -301,21 +403,19 @@ export default function OrderTrackingPage() {
                             </div>
                             {index < selectedOrder.timeline.length - 1 && (
                               <div
-                                className={`w-0.5 h-12 ${
-                                  step.completed
-                                    ? "bg-green-500"
-                                    : "bg-gray-300"
-                                }`}
+                                className={`w-0.5 h-12 ${step.completed
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                                  }`}
                               />
                             )}
                           </div>
                           <div className="flex-1 pb-8">
                             <p
-                              className={`font-bold ${
-                                step.completed
-                                  ? "text-dark-green"
-                                  : "text-gray-500"
-                              }`}
+                              className={`font-bold ${step.completed
+                                ? "text-dark-green"
+                                : "text-gray-500"
+                                }`}
                             >
                               {step.message}
                             </p>
@@ -366,7 +466,7 @@ export default function OrderTrackingPage() {
                             </p>
                           </div>
                           <p className="font-bold text-dark-green">
-                            ₹{item.price}
+                            {formatPrice(item.price)}
                           </p>
                         </div>
                       ))}
@@ -381,28 +481,27 @@ export default function OrderTrackingPage() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-dark-green/80">
                         <span>Subtotal</span>
-                        <span>₹{selectedOrder.subtotal}</span>
+                        <span>{formatPrice(selectedOrder.subtotal)}</span>
                       </div>
                       <div className="flex justify-between text-dark-green/80">
                         <span>GST & Taxes</span>
-                        <span>₹{selectedOrder.tax}</span>
+                        <span>{formatPrice(selectedOrder.tax)}</span>
                       </div>
                       <div className="flex justify-between text-dark-green/80">
                         <span>Delivery Fee</span>
-                        <span>₹{selectedOrder.deliveryFee}</span>
+                        <span>{formatPrice(selectedOrder.deliveryFee)}</span>
                       </div>
                       {selectedOrder.discount > 0 && (
                         <div className="flex justify-between text-green-600 font-semibold">
                           <span>Discount (10%)</span>
-                          <span>-₹{selectedOrder.discount}</span>
+                          <span>-{formatPrice(selectedOrder.discount)}</span>
                         </div>
                       )}
                       <div className="border-t-2 border-green-300 pt-2 mt-2">
                         <div className="flex justify-between text-dark-green font-bold text-lg">
                           <span>Total Paid</span>
                           <span className="flex items-center">
-                            <IndianRupee className="w-5 h-5" />
-                            {selectedOrder.total}
+                            {formatPrice(selectedOrder.total)}
                           </span>
                         </div>
                         <p className="text-dark-green/60 text-xs mt-1">
@@ -433,5 +532,17 @@ export default function OrderTrackingPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function OrderTrackingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-warm-beige flex items-center justify-center">
+        <Package className="w-8 h-8 animate-spin text-tomato-red" />
+      </div>
+    }>
+      <OrderTrackingContent />
+    </Suspense>
   );
 }

@@ -3,7 +3,7 @@ export interface PartyPackage {
   name: string;
   description: string;
   servings: string;
-  price: number;
+  pricePaise: number;
   category: "breakfast" | "lunch" | "dinner" | "snacks" | "dessert";
   items: string[];
   customizable: boolean;
@@ -19,7 +19,7 @@ export const partyPackages: PartyPackage[] = [
     description:
       "Complete traditional meal with dal, sabzi, rice, roti, raita, papad, and dessert",
     servings: "Per Person",
-    price: 299,
+    pricePaise: 29900,
     category: "lunch",
     items: [
       "Dal Makhani / Tadka Dal",
@@ -41,7 +41,7 @@ export const partyPackages: PartyPackage[] = [
     description:
       "Perfect morning spread with South Indian and North Indian breakfast items",
     servings: "10-12 People",
-    price: 2499,
+    pricePaise: 249900,
     category: "breakfast",
     items: [
       "20 Idlis with Sambar",
@@ -61,7 +61,7 @@ export const partyPackages: PartyPackage[] = [
     name: "Paneer Paradise",
     description: "Premium package featuring 4 signature paneer dishes",
     servings: "15-20 People",
-    price: 4999,
+    pricePaise: 499900,
     category: "lunch",
     items: [
       "Paneer Butter Masala (1.5 kg)",
@@ -82,7 +82,7 @@ export const partyPackages: PartyPackage[] = [
     name: "Snack Attack Combo",
     description: "Assorted snacks perfect for evening parties and gatherings",
     servings: "20-25 People",
-    price: 3499,
+    pricePaise: 349900,
     category: "snacks",
     items: [
       "Samosas (50 pcs)",
@@ -104,7 +104,7 @@ export const partyPackages: PartyPackage[] = [
     description:
       "Festive spread with traditional sweets and savory items for celebrations",
     servings: "25-30 People",
-    price: 6999,
+    pricePaise: 699900,
     category: "dinner",
     items: [
       "Pav Bhaji (5 kg)",
@@ -125,7 +125,7 @@ export const partyPackages: PartyPackage[] = [
     name: "South Indian Fiesta",
     description: "Authentic South Indian dishes for your special occasions",
     servings: "15-20 People",
-    price: 3999,
+    pricePaise: 399900,
     category: "dinner",
     items: [
       "Mini Dosas (40 pcs)",
@@ -147,7 +147,7 @@ export const partyPackages: PartyPackage[] = [
     name: "Birthday Bash Package",
     description: "Complete party package with food and desserts for birthdays",
     servings: "30-35 People",
-    price: 8999,
+    pricePaise: 899900,
     category: "dinner",
     items: [
       "Veg Biryani (5 kg)",
@@ -169,7 +169,7 @@ export const partyPackages: PartyPackage[] = [
     name: "Corporate Lunch Box",
     description: "Individual packed meals perfect for office events and meetings",
     servings: "Per Box",
-    price: 199,
+    pricePaise: 19900,
     category: "lunch",
     items: [
       "1 Main Curry (Paneer/Veg)",
@@ -190,7 +190,7 @@ export const partyPackages: PartyPackage[] = [
     name: "Sweet Delight Platter",
     description: "Assorted Indian sweets for gifting and celebrations",
     servings: "30-40 Pieces",
-    price: 1999,
+    pricePaise: 199900,
     category: "dessert",
     items: [
       "Gulab Jamun (15 pcs)",
@@ -210,7 +210,7 @@ export const partyPackages: PartyPackage[] = [
     name: "Street Food Carnival",
     description: "Popular Mumbai street food favorites for casual parties",
     servings: "20-25 People",
-    price: 4499,
+    pricePaise: 449900,
     category: "snacks",
     items: [
       "Pani Puri (200 pcs)",

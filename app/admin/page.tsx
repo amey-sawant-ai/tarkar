@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import {
   ShoppingBag,
   Users,
-  DollarSign,
+  IndianRupee,
   Clock,
   CheckCircle,
   XCircle,
   ChefHat,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 interface DashboardStats {
   totalOrders: number;
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const formatPrice = (paise: number) => `₹${(paise / 100).toFixed(2)}`;
+
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
               </p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
-              <DollarSign className="h-6 w-6 text-green-600" />
+              <IndianRupee className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>

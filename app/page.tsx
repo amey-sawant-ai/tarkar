@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
@@ -9,6 +10,7 @@ import MenuSection from "@/components/MenuSection";
 import ImageGallery from "@/components/ImageGallery";
 import TestimonialCard from "@/components/TestimonialCard";
 import Footer from "@/components/Footer";
+import { formatPrice } from "@/lib/utils";
 import {
   northIndianDishes,
   southIndianDishes,
@@ -20,32 +22,76 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
   const { t } = useLanguage();
+  const [foodGallery, setFoodGallery] = useState<string[]>(Array(6).fill("/Tarkari-image.png"));
+  const [tarkariSpecials, setTarkariSpecials] = useState<any[]>([]);
 
-  // Convert menu items to match MenuSection expected format
-  const tarkariSpecials = northIndianDishes.slice(0, 6).map((dish) => ({
-    name: dish.name,
-    desc: dish.desc,
-    price: `₹${dish.price}`,
-    image: dish.image,
-  }));
+  useEffect(() => {
+    const fetchGalleryImages = async () => {
+      try {
+        const response = await fetch("/api/menu/dishes?pageSize=150");
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Food Gallery
+          const images = data.data
+            .filter((d: any) => d.imageUrl && !d.imageUrl.includes("placeholder"))
+            .map((d: any) => d.imageUrl)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 6);
+
+          if (images.length > 0) {
+            setFoodGallery(images);
+          }
+
+          // Tarkari Specials (Featured or first 6 with images)
+          const specials = data.data
+            .filter((d: any) => d.imageUrl && !d.imageUrl.includes("Tarkari-image.png"))
+            .slice(0, 6)
+            .map((d: any) => ({
+              id: d._id,
+              name: d.name,
+              desc: d.shortDescription || d.description || "",
+              price: formatPrice(d.pricePaise),
+              image: d.imageUrl,
+            }));
+
+          if (specials.length > 0) {
+            setTarkariSpecials(specials);
+          } else {
+            // Fallback to static data if no real data found
+            setTarkariSpecials(northIndianDishes.slice(0, 6).map(d => ({
+              id: d.id.toString(),
+              name: d.name,
+              desc: d.desc,
+              price: formatPrice(d.price * 100),
+              image: d.image
+            })));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching home page data:", error);
+      }
+    };
+    fetchGalleryImages();
+  }, []);
 
   const southIndianSpecials = southIndianDishes.slice(0, 6).map((dish) => ({
+    id: dish.id.toString(),
     name: dish.name,
     desc: dish.desc,
-    price: `₹${dish.price}`,
+    price: formatPrice(dish.price * 100),
     image: dish.image,
   }));
 
   const chineseDelights = chineseDishes.slice(0, 6).map((dish) => ({
+    id: dish.id.toString(),
     name: dish.name,
     desc: dish.desc,
-    price: `₹${dish.price}`,
+    price: formatPrice(dish.price * 100),
     image: dish.image,
   }));
 
-  const testimonials = getRecentTestimonials(4);
 
-  const foodGallery = Array(6).fill("/Tarkari-image.png");
+  const testimonials = getRecentTestimonials(4);
 
   return (
     <div className="min-h-screen bg-warm-beige">

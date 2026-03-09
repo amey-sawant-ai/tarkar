@@ -4,6 +4,7 @@ import { Order } from "@/models/Order";
 import { Dish } from "@/models/Dish";
 import { Favorite } from "@/models/Favorite";
 import { getUserId, apiSuccess, apiError } from "@/lib/api-helpers";
+import { PRICING } from "@/lib/constants";
 
 interface OrderBody {
   items: Array<{
@@ -129,8 +130,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Calculate totals
-    const taxPaise = Math.round(subTotalPaise * 0.05); // 5% tax
-    const deliveryFeePaise = deliveryType === "delivery" ? 5000 : 0; // ₹50 delivery fee
+    const taxPaise = Math.round(subTotalPaise * (PRICING.taxPercent / 100));
+    const deliveryFeePaise = deliveryType === "delivery" ? PRICING.deliveryFee : 0;
     const totalPaise = subTotalPaise + taxPaise + deliveryFeePaise;
 
     // Create order
@@ -164,7 +165,7 @@ export async function POST(req: NextRequest) {
     const orderedDishIds = items.map((item) => item.dishId);
     await Favorite.updateMany(
       { userId, dishId: { $in: orderedDishIds } },
-      { 
+      {
         $inc: { orderCount: 1 },
         $set: { lastOrderedAt: new Date() }
       }

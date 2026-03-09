@@ -11,7 +11,7 @@ import MenuSearch from "@/components/MenuSearch";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatPricePaise } from "@/lib/api-helpers";
+import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 interface DishData {
@@ -167,7 +167,7 @@ export default function SearchMenuPage() {
               {dish.name}
             </h3>
             <span className="font-bold text-primary">
-              {formatPricePaise(dish.pricePaise)}
+              {formatPrice(dish.pricePaise)}
             </span>
           </div>
 

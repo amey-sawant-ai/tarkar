@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CURRENCY } from "@/lib/constants";
 
 interface Category {
   _id: string;
@@ -222,11 +223,11 @@ export default function AdminDishEditPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price (₹) *
+                Price ({CURRENCY.symbol}) *
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                  ₹
+                  {CURRENCY.symbol}
                 </span>
                 <input
                   type="number"

@@ -1,0 +1,15 @@
+app/api/admin/reports/route.ts(65,7): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: unknown, index: number, array: unknown[]) => value is unknown, thisArg?: any): unknown[]', gave the following error.
+    Argument of type '(count: number) => boolean' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => value is unknown'.
+      Types of parameters 'count' and 'value' are incompatible.
+        Type 'unknown' is not assignable to type 'number'.
+  Overload 2 of 2, '(predicate: (value: unknown, index: number, array: unknown[]) => unknown, thisArg?: any): unknown[]', gave the following error.
+    Argument of type '(count: number) => boolean' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => unknown'.
+      Types of parameters 'count' and 'value' are incompatible.
+        Type 'unknown' is not assignable to type 'number'.
+app/api/user/dashboard-stats/route.ts(89,32): error TS7006: Parameter 'item' implicitly has an 'any' type.
+lib/index.ts(13,1): error TS2308: Module "./constants" has already exported a member named 'OrderStatus'. Consider explicitly re-exporting to resolve the ambiguity.
+lib/index.ts(13,1): error TS2308: Module "./constants" has already exported a member named 'PaymentMethodType'. Consider explicitly re-exporting to resolve the ambiguity.
+lib/index.ts(13,1): error TS2308: Module "./constants" has already exported a member named 'TransactionType'. Consider explicitly re-exporting to resolve the ambiguity.
+scripts/make-admin.ts(33,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.

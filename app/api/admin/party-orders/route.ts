@@ -83,6 +83,6 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     console.error("Error fetching party orders:", error);
-    return apiError("Failed to fetch party orders", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch party orders", 500);
   }
 }

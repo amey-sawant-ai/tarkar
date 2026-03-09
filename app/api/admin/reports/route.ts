@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, number>);
     const repeatCustomers = Object.values(userOrderCounts).filter(
-      (count) => count > 1
+      (count: unknown) => (count as number) > 1
     ).length;
 
     // Get average rating
@@ -147,6 +147,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching reports:", error);
-    return apiError("Failed to fetch reports", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch reports", 500);
   }
 }

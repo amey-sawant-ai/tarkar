@@ -25,7 +25,7 @@ export async function GET(
     return apiSuccess(user);
   } catch (error) {
     console.error("Error fetching user:", error);
-    return apiError("Failed to fetch user", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch user", 500);
   }
 }
 
@@ -56,7 +56,7 @@ export async function PATCH(
 
     // Validate role if provided
     if (updates.role && !["user", "admin", "staff"].includes(updates.role as string)) {
-      return apiError("Invalid role. Must be 'user', 'admin', or 'staff'", 400);
+      return apiError("BAD_REQUEST", "Invalid role. Must be 'user', 'admin', or 'staff'", 400);
     }
 
     const user = await User.findByIdAndUpdate(
@@ -74,6 +74,6 @@ export async function PATCH(
     return apiSuccess(user);
   } catch (error) {
     console.error("Error updating user:", error);
-    return apiError("Failed to update user", 500);
+    return apiError("SERVER_ERROR", "Failed to update user", 500);
   }
 }

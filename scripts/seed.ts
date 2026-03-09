@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
 import connectToDatabase from "@/lib/mongodb";
 import { Category, Dish, User } from "@/models";
 import bcrypt from "bcryptjs";
@@ -302,7 +305,6 @@ export async function seedDatabase() {
     if (!demoUser) {
       const hashedPassword = await bcrypt.hash("password", 12);
       await User.create({
-        _id: "demo_user_001",
         email: "demo@tarkari.com",
         password: hashedPassword,
         name: "Demo User",

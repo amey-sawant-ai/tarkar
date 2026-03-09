@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { formatPrice } from "@/lib/utils";
 
 interface PartyOrderItem {
   packageId: number;
@@ -230,9 +231,7 @@ export default function AdminPartyOrderDetailPage({
     return flow[currentStatus] || null;
   };
 
-  const formatPrice = (paise: number) => {
-    return `₹${(paise / 100).toLocaleString("en-IN")}`;
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {

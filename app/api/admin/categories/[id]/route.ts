@@ -25,7 +25,7 @@ export async function GET(
     return apiSuccess(category);
   } catch (error) {
     console.error("Error fetching category:", error);
-    return apiError("Failed to fetch category", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch category", 500);
   }
 }
 
@@ -54,7 +54,7 @@ export async function PATCH(
         _id: { $ne: id },
       });
       if (existing) {
-        return apiError("Category with this slug already exists", 400);
+        return apiError("CONFLICT", "Category with this slug already exists", 409);
       }
     }
 
@@ -71,7 +71,7 @@ export async function PATCH(
     return apiSuccess(category);
   } catch (error) {
     console.error("Error updating category:", error);
-    return apiError("Failed to update category", 500);
+    return apiError("SERVER_ERROR", "Failed to update category", 500);
   }
 }
 
@@ -97,6 +97,6 @@ export async function DELETE(
     return apiSuccess({ message: "Category deleted successfully" });
   } catch (error) {
     console.error("Error deleting category:", error);
-    return apiError("Failed to delete category", 500);
+    return apiError("SERVER_ERROR", "Failed to delete category", 500);
   }
 }

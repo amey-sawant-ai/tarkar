@@ -7,7 +7,7 @@ import { getUserId, apiSuccess, apiError } from "@/lib/api-helpers";
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
-    
+
     const userId = getUserId(req);
     if (!userId) {
       return apiError("UNAUTHORIZED", "Authentication required", 401);
@@ -22,21 +22,21 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
       // Total orders count
       Order.countDocuments({ userId }),
-      
+
       // Total amount spent (only delivered orders)
       Order.aggregate([
         { $match: { userId, status: "delivered" } },
         { $group: { _id: null, total: { $sum: "$billing.totalPaise" } } }
       ]),
-      
+
       // Recent orders this month
       Order.countDocuments({
         userId,
-        createdAt: { 
-          $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) 
+        createdAt: {
+          $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
         }
       }),
-      
+
       // Delivered orders count
       Order.countDocuments({ userId, status: "delivered" })
     ]);
@@ -53,13 +53,13 @@ export async function GET(req: NextRequest) {
     const favoriteDishesPipeline = await Order.aggregate([
       { $match: { userId, status: "delivered" } },
       { $unwind: "$items" },
-      { 
-        $group: { 
-          _id: "$items.name", 
+      {
+        $group: {
+          _id: "$items.name",
           totalOrders: { $sum: "$items.qty" },
           lastOrderDate: { $max: "$createdAt" },
           avgPrice: { $avg: "$items.pricePaise" }
-        } 
+        }
       },
       { $sort: { totalOrders: -1 } },
       { $limit: 3 },
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
       recentOrders: recentOrders.map(order => ({
         id: order._id,
         orderNumber: `ORD-${order._id.toString().slice(-6).toUpperCase()}`,
-        items: order.items.map(item => ({
+        items: order.items.map((item: any) => ({
           name: item.name,
           quantity: item.qty
         })),

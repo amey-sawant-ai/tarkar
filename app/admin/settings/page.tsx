@@ -14,6 +14,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CURRENCY } from "@/lib/constants";
 
 interface Settings {
   restaurant: {
@@ -309,7 +310,7 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Min Order Amount (₹)
+              Min Order Amount ({CURRENCY.symbol})
             </label>
             <input
               type="number"
@@ -400,7 +401,7 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Base Delivery Fee (₹)
+              Base Delivery Fee ({CURRENCY.symbol})
             </label>
             <input
               type="number"
@@ -417,7 +418,7 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Free Delivery Above (₹)
+              Free Delivery Above ({CURRENCY.symbol})
             </label>
             <input
               type="number"

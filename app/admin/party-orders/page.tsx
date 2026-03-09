@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatPrice } from "@/lib/utils";
 
 interface PartyOrderItem {
   packageId: number;
@@ -123,9 +124,7 @@ export default function AdminPartyOrdersPage() {
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
-  const formatPrice = (paise: number) => {
-    return `₹${(paise / 100).toLocaleString("en-IN")}`;
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {

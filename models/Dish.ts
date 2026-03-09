@@ -18,47 +18,47 @@ const DishSchema = new Schema(
     description: { type: String },
     shortDescription: { type: String },
     categoryId: { type: Types.ObjectId, ref: "Category", required: true, index: true },
-    
+
     // Pricing (in paise - 1 INR = 100 paise)
     pricePaise: { type: Number, required: true },
     discountPricePaise: { type: Number },
-    
+
     // Media
     imageUrl: { type: String },
     thumbnailUrl: { type: String },
     gallery: [{ type: String }],
-    
+
     // Attributes
     isVeg: { type: Boolean, default: true },
     isVegan: { type: Boolean, default: false },
     isGlutenFree: { type: Boolean, default: false },
     isSpicy: { type: Boolean, default: false },
     spicyLevel: { type: Number, min: 0, max: 5, default: 0 },
-    
+
     // Serving info
     servingSize: { type: String },
     preparationTime: { type: Number }, // in minutes
-    
+
     // Nutrition info
     nutrition: { type: NutritionSchema },
-    
+
     // Ingredients & allergens
     ingredients: [{ type: String }],
     allergens: [{ type: String }],
-    
+
     // Status
     isAvailable: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
     isPopular: { type: Boolean, default: false },
     isNew: { type: Boolean, default: false },
-    
+
     // Ratings
     avgRating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0 },
-    
+
     // Ordering
     displayOrder: { type: Number, default: 0 },
-    
+
     // Tags for search
     tags: [{ type: String }],
   },
@@ -67,5 +67,11 @@ const DishSchema = new Schema(
 
 // Text search index
 DishSchema.index({ name: "text", description: "text", tags: "text" });
+
+// Compound indexes for common queries
+DishSchema.index({ isAvailable: 1, displayOrder: 1 });
+DishSchema.index({ isAvailable: 1, categoryId: 1, displayOrder: 1 });
+DishSchema.index({ isFeatured: 1, isAvailable: 1 });
+DishSchema.index({ isPopular: 1, isAvailable: 1 });
 
 export const Dish = models.Dish || model("Dish", DishSchema);

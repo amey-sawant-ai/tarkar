@@ -5,13 +5,13 @@ declare global {
   var _mongooseConn: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined;
 }
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not set in environment variables");
-}
-
 export async function connectToDatabase() {
+  const MONGODB_URI = process.env.MONGODB_URI;
+
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not set in environment variables");
+  }
+
   if (!global._mongooseConn) {
     global._mongooseConn = { conn: null, promise: null };
   }
@@ -23,6 +23,11 @@ export async function connectToDatabase() {
       bufferCommands: false,
       autoCreate: true,
       autoIndex: true,
+      // Connection pool settings for better performance
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
   }
   global._mongooseConn.conn = await global._mongooseConn.promise;

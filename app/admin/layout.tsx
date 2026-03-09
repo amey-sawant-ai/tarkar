@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           setIsAdmin(true);
         } else {
           setIsAdmin(false);
-          router.push("/dashboard");
+          router.push("/");
         }
       } catch {
         setIsAdmin(false);

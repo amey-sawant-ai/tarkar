@@ -29,6 +29,8 @@ interface User {
     newsletter: boolean;
     sms: boolean;
   };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {

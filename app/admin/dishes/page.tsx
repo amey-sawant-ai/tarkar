@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/utils";
 
 interface Dish {
   _id: string;
@@ -270,7 +271,7 @@ export default function AdminDishesPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img
-                          src={dish.imageUrl || "/placeholder-dish.jpg"}
+                          src={dish.imageUrl || "/placeholder-dish.svg"}
                           alt={dish.name}
                           className="w-12 h-12 rounded-lg object-cover"
                         />
@@ -291,7 +292,7 @@ export default function AdminDishesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-medium">
-                        ₹{(dish.pricePaise / 100).toFixed(2)}
+                        {formatPrice(dish.pricePaise)}
                       </span>
                     </td>
                     <td className="px-4 py-3">

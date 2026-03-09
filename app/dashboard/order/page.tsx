@@ -11,13 +11,15 @@ import {
   Plus,
   Minus,
   Loader2,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import DashboardNavbar from "@/components/DashboardNavbar";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice, calculateOrderTotal } from "@/lib/utils";
+import { PRICING } from "@/lib/constants";
 
 // Types
 interface Dish {
@@ -139,7 +141,7 @@ export default function OrderPage() {
       name: dish.name,
       price: dish.discountPricePaise || dish.pricePaise,
       quantity: 1,
-      image: dish.imageUrl || "/placeholder-dish.jpg",
+      image: dish.imageUrl || "/placeholder-dish.svg",
     });
   };
 
@@ -152,13 +154,11 @@ export default function OrderPage() {
     }
   };
 
+  // Placeholder for handleProceedToCheckout if needed
   const handleProceedToCheckout = () => {
     setShowCart(false);
     router.push("/dashboard/checkout");
   };
-
-  // Format price
-  const formatPrice = (paise: number) => `₹${(paise / 100).toFixed(0)}`;
 
   if (authLoading || isLoading) {
     return (
@@ -288,19 +288,19 @@ export default function OrderPage() {
                         onClick={() => setPriceRange([0, 15000])}
                         className="px-3 py-1 text-xs rounded-lg bg-warm-beige/30 text-dark-green hover:bg-warm-beige/50 transition-all"
                       >
-                        Under ₹150
+                        Under {formatPrice(15000)}
                       </button>
                       <button
                         onClick={() => setPriceRange([15000, 25000])}
                         className="px-3 py-1 text-xs rounded-lg bg-warm-beige/30 text-dark-green hover:bg-warm-beige/50 transition-all"
                       >
-                        ₹150-250
+                        {formatPrice(15000).replace(/\.00$/, '')}-{formatPrice(25000).replace(/\.00$/, '')}
                       </button>
                       <button
                         onClick={() => setPriceRange([25000, 50000])}
                         className="px-3 py-1 text-xs rounded-lg bg-warm-beige/30 text-dark-green hover:bg-warm-beige/50 transition-all"
                       >
-                        Above ₹250
+                        Above {formatPrice(25000)}
                       </button>
                     </div>
                   </div>
@@ -311,18 +311,18 @@ export default function OrderPage() {
                   showVegOnly ||
                   priceRange[0] !== 0 ||
                   priceRange[1] !== 50000) && (
-                  <Button
-                    variant="outline"
-                    className="w-full border-tomato-red text-tomato-red hover:bg-tomato-red hover:text-white"
-                    onClick={() => {
-                      setSelectedCategory("All");
-                      setShowVegOnly(false);
-                      setPriceRange([0, 50000]);
-                    }}
-                  >
-                    Clear All Filters
-                  </Button>
-                )}
+                    <Button
+                      variant="outline"
+                      className="w-full border-tomato-red text-tomato-red hover:bg-tomato-red hover:text-white"
+                      onClick={() => {
+                        setSelectedCategory("All");
+                        setShowVegOnly(false);
+                        setPriceRange([0, 50000]);
+                      }}
+                    >
+                      Clear All Filters
+                    </Button>
+                  )}
               </div>
             </div>
           </motion.div>
@@ -367,7 +367,7 @@ export default function OrderPage() {
                   >
                     <div className="relative h-40">
                       <Image
-                        src={dish.imageUrl || "/placeholder-dish.jpg"}
+                        src={dish.imageUrl || "/placeholder-dish.svg"}
                         alt={dish.name}
                         fill
                         className="object-cover"
@@ -397,7 +397,7 @@ export default function OrderPage() {
                         <div className="absolute bottom-3 left-3 bg-saffron-yellow text-dark-green text-xs px-2 py-0.5 rounded-full font-bold">
                           {Math.round(
                             (1 - dish.discountPricePaise / dish.pricePaise) *
-                              100,
+                            100,
                           )}
                           % OFF
                         </div>
@@ -528,13 +528,20 @@ export default function OrderPage() {
                         key={item.dishId}
                         className="flex items-center gap-4 p-4 bg-warm-beige/30 rounded-xl"
                       >
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          width={60}
-                          height={60}
-                          className="rounded-lg object-cover"
-                        />
+                        {item.image && (
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            width={60}
+                            height={60}
+                            className="rounded-lg object-cover"
+                          />
+                        )}
+                        {!item.image && (
+                          <div className="w-[60px] h-[60px] bg-warm-beige rounded-lg flex items-center justify-center text-dark-green/40">
+                            <ShoppingBag className="w-6 h-6" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-dark-green truncate">
                             {item.name}
@@ -565,36 +572,43 @@ export default function OrderPage() {
                   </div>
 
                   <div className="border-t-2 border-dark-green/10 pt-6 space-y-4">
-                    <div className="flex items-center justify-between text-lg">
-                      <span className="text-dark-green/70 font-semibold">
-                        Subtotal
-                      </span>
-                      <span className="font-bold text-dark-green">
-                        {formatPrice(totalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-lg">
-                      <span className="text-dark-green/70 font-semibold">
-                        Tax (5%)
-                      </span>
-                      <span className="font-bold text-dark-green">
-                        {formatPrice(Math.round(totalPrice * 0.05))}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-lg">
-                      <span className="text-dark-green/70 font-semibold">
-                        Delivery Fee
-                      </span>
-                      <span className="font-bold text-dark-green">₹50</span>
-                    </div>
-                    <div className="flex items-center justify-between text-2xl border-t-2 border-dark-green/10 pt-4">
-                      <span className="text-dark-green font-bold">Total</span>
-                      <span className="font-bold text-tomato-red">
-                        {formatPrice(
-                          totalPrice + Math.round(totalPrice * 0.05) + 5000,
-                        )}
-                      </span>
-                    </div>
+                    {(() => {
+                      const totals = calculateOrderTotal(totalPrice);
+                      return (
+                        <>
+                          <div className="flex items-center justify-between text-lg">
+                            <span className="text-dark-green/70 font-semibold">
+                              Subtotal
+                            </span>
+                            <span className="font-bold text-dark-green">
+                              {formatPrice(totals.subtotal)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-lg">
+                            <span className="text-dark-green/70 font-semibold">
+                              Tax ({PRICING.taxPercent}%)
+                            </span>
+                            <span className="font-bold text-dark-green">
+                              {formatPrice(totals.tax)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-lg">
+                            <span className="text-dark-green/70 font-semibold">
+                              Delivery Fee
+                            </span>
+                            <span className="font-bold text-dark-green">
+                              {formatPrice(totals.deliveryFee)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-2xl border-t-2 border-dark-green/10 pt-4">
+                            <span className="text-dark-green font-bold">Total</span>
+                            <span className="font-bold text-tomato-red">
+                              {formatPrice(totals.total)}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                     <Button
                       onClick={handleProceedToCheckout}
                       className="w-full bg-gradient-to-r from-tomato-red to-saffron-yellow text-white hover:shadow-2xl font-bold py-6 text-lg"

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -12,15 +13,23 @@ import {
   Heart,
   Search,
   Flame,
-  ShoppingCart,
   X,
   Filter,
   SlidersHorizontal,
-  ArrowRight,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatPrice } from "@/lib/utils";
+import { cn } from "@/lib";
+
+interface CategoryData {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  displayOrder?: number;
+}
 
 interface DishData {
   _id: string;
@@ -61,7 +70,8 @@ export default function Menu() {
   const [dishes, setDishes] = useState<DishData[]>([]);
   const [filteredDishes, setFilteredDishes] = useState<DishData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<Record<string, DishData[]>>({});
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [groupedDishes, setGroupedDishes] = useState<Record<string, DishData[]>>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -77,56 +87,75 @@ export default function Menu() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
-    const fetchDishes = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch all dishes with pagination - include unavailable dishes to show with overlay
-        const response = await fetch(
-          "/api/menu/dishes?pageSize=100&includeUnavailable=true",
-        );
-        const data = await response.json();
+        // Start both requests in parallel
+        const token = localStorage.getItem("auth_token");
 
-        if (data.success && data.data) {
-          setDishes(data.data);
-          setFilteredDishes(data.data);
+        const dishesPromise = fetch(
+          "/api/menu/dishes?pageSize=500&includeUnavailable=true",
+        ).then(res => res.json());
+
+        const favoritesPromise = token
+          ? fetch("/api/user/favorites", {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(res => res.ok ? res.json() : { data: [] })
+          : Promise.resolve({ data: [] });
+
+        const categoriesPromise = fetch("/api/menu/categories").then(res =>
+          res.ok ? res.json() : { success: true, data: [] }
+        );
+
+        // Wait for all to complete
+        const [dishesData, favData, categoriesData] = await Promise.all([
+          dishesPromise,
+          favoritesPromise,
+          categoriesPromise,
+        ]);
+
+        if (dishesData.success && dishesData.data) {
+          setDishes(dishesData.data);
+          setFilteredDishes(dishesData.data);
+
+          // Get categories
+          const cats: CategoryData[] = categoriesData.data || [];
+          setCategories(cats);
 
           // Group dishes by category
           const grouped: Record<string, DishData[]> = {};
-          data.data.forEach((dish: DishData) => {
-            const categoryName = dish.categoryId?.name || "Other";
+
+          // Initialize groups with fetched categories to maintain order
+          cats.forEach(cat => {
+            grouped[cat.name] = [];
+          });
+
+          dishesData.data.forEach((dish: DishData) => {
+            const categoryName = dish.categoryId?.name || "Uncategorized";
             if (!grouped[categoryName]) {
               grouped[categoryName] = [];
             }
             grouped[categoryName].push(dish);
           });
-          setCategories(grouped);
+
+          // Remove empty categories from group if they are not the active filter
+          setGroupedDishes(grouped);
         }
 
-        // Check if user is logged in and fetch favorites
-        const token = localStorage.getItem("auth_token");
-        if (token) {
-          try {
-            const favResponse = await fetch("/api/user/favorites", {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            if (favResponse.ok) {
-              const favData = await favResponse.json();
-              const favIds = new Set(
-                favData.data?.map((dish: DishData) => dish._id) || [],
-              );
-              setFavorites(favIds);
-            }
-          } catch (error) {
-            console.error("Error fetching favorites:", error);
-          }
+        // Set favorites
+        if (favData.data) {
+          const favIds = new Set<string>(
+            favData.data.map((dish: DishData) => dish._id) || [],
+          );
+          setFavorites(favIds);
         }
       } catch (error) {
-        console.error("Failed to fetch dishes:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDishes();
+    fetchData();
   }, []);
 
   // Filter dishes based on search, category, price, veg/spicy
@@ -134,8 +163,8 @@ export default function Menu() {
     let filtered = dishes.filter((dish) => {
       const matchesSearch =
         debouncedSearchTerm === "" ||
-        dish.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        dish.shortDescription
+        (dish.name || "").toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (dish.shortDescription || "")
           .toLowerCase()
           .includes(debouncedSearchTerm.toLowerCase());
 
@@ -262,13 +291,56 @@ export default function Menu() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-warm-beige flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Loader2 className="w-12 h-12 text-tomato-red" />
-        </motion.div>
+      <div className="min-h-screen bg-warm-beige">
+        <Navbar />
+
+        {/* Skeleton Hero */}
+        <section className="bg-gradient-to-br from-dark-green via-dark-green/95 to-dark-green/90 py-24 md:py-32">
+          <div className="container mx-auto px-6 text-center">
+            <div className="animate-pulse">
+              <div className="h-12 bg-white/20 rounded-lg w-64 mx-auto mb-6"></div>
+              <div className="h-6 bg-white/10 rounded w-96 mx-auto"></div>
+            </div>
+          </div>
+        </section>
+
+        {/* Skeleton Search */}
+        <section className="py-8 bg-warm-beige">
+          <div className="container mx-auto px-6">
+            <div className="animate-pulse mb-6">
+              <div className="h-12 bg-dark-green/10 rounded-lg w-full"></div>
+            </div>
+            <div className="flex justify-center gap-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-10 w-24 bg-dark-green/10 rounded-full animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Skeleton Grid */}
+        <section className="py-16 bg-warm-beige">
+          <div className="container mx-auto px-6">
+            <div className="animate-pulse h-10 bg-dark-green/10 rounded w-48 mx-auto mb-12"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-lg animate-pulse">
+                  <div className="h-64 bg-dark-green/10"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-dark-green/10 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-dark-green/5 rounded w-full mb-4"></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-8 w-20 bg-tomato-red/20 rounded"></div>
+                      <div className="h-10 w-24 bg-dark-green/10 rounded-lg"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Footer />
       </div>
     );
   }
@@ -355,11 +427,10 @@ export default function Menu() {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
-                  showFilters || hasActiveFilters
-                    ? "bg-dark-green text-white border-dark-green"
-                    : "bg-white text-dark-green border-dark-green/20 hover:border-dark-green"
-                }`}
+                className={`px-4 py-3 rounded-lg border-2 transition-all flex items-center gap-2 ${showFilters || hasActiveFilters
+                  ? "bg-dark-green text-white border-dark-green"
+                  : "bg-white text-dark-green border-dark-green/20 hover:border-dark-green"
+                  }`}
               >
                 <SlidersHorizontal className="w-5 h-5" />
                 <span className="hidden sm:inline">Filters</span>
@@ -373,41 +444,39 @@ export default function Menu() {
 
             {/* Search Results Info */}
             <AnimatePresence>
-              {(debouncedSearchTerm || hasActiveFilters) && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="mt-3 flex items-center justify-between"
-                >
-                  <p className="text-dark-green/70">
-                    Found{" "}
-                    <span className="font-bold text-dark-green">
-                      {filteredDishes.length}
-                    </span>
-                    {filteredDishes.length === 1 ? " dish" : " dishes"}
-                    {debouncedSearchTerm && (
-                      <>
-                        {" "}
-                        matching "
-                        <span className="font-semibold text-tomato-red">
-                          {debouncedSearchTerm}
-                        </span>
-                        "
-                      </>
-                    )}
-                  </p>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={clearFilters}
-                      className="text-sm text-tomato-red hover:text-tomato-red/80 font-medium flex items-center gap-1"
-                    >
-                      <X className="w-4 h-4" />
-                      Clear all filters
-                    </button>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-3 flex items-center justify-between"
+              >
+                <p className="text-dark-green/70">
+                  Found{" "}
+                  <span className="font-bold text-dark-green">
+                    {filteredDishes.length}
+                  </span>
+                  {filteredDishes.length === 1 ? " dish" : " dishes"}
+                  {debouncedSearchTerm && (
+                    <>
+                      {" "}
+                      matching "
+                      <span className="font-semibold text-tomato-red">
+                        {debouncedSearchTerm}
+                      </span>
+                      "
+                    </>
                   )}
-                </motion.div>
-              )}
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-sm text-tomato-red hover:text-tomato-red/80 font-medium flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear all filters
+                  </button>
+                )}
+              </motion.div>
             </AnimatePresence>
           </div>
 
@@ -424,8 +493,7 @@ export default function Menu() {
                   {/* Price Range */}
                   <div>
                     <label className="block text-sm font-semibold text-dark-green mb-2">
-                      Price: ₹{(priceRange[0] / 100).toFixed(0)} - ₹
-                      {(priceRange[1] / 100).toFixed(0)}
+                      Price: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
                     </label>
                     <input
                       type="range"
@@ -495,9 +563,9 @@ export default function Menu() {
                       className="w-full px-4 py-2 rounded-lg border-2 border-dark-green/20 focus:outline-none focus:border-dark-green font-semibold text-dark-green"
                     >
                       <option value="">All Categories</option>
-                      {Object.keys(categories).map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
+                      {categories.map((cat) => (
+                        <option key={cat._id} value={cat.name}>
+                          {cat.name}
                         </option>
                       ))}
                     </select>
@@ -511,29 +579,27 @@ export default function Menu() {
           <div className="flex justify-center gap-3 flex-wrap">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`px-5 py-2.5 rounded-full font-semibold transition-all shadow-md text-sm ${
-                selectedCategory === null
-                  ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
-                  : "bg-white text-dark-green hover:bg-gradient-to-r hover:from-tomato-red hover:to-saffron-yellow hover:text-white"
-              }`}
+              className={`px-5 py-2.5 rounded-full font-semibold transition-all shadow-md text-sm ${selectedCategory === null
+                ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
+                : "bg-white text-dark-green hover:bg-gradient-to-r hover:from-tomato-red hover:to-saffron-yellow hover:text-white"
+                }`}
             >
               All
             </button>
-            {Object.keys(categories).map((categoryName) => (
+            {categories.map((category) => (
               <button
-                key={categoryName}
+                key={category._id}
                 onClick={() =>
                   setSelectedCategory(
-                    selectedCategory === categoryName ? null : categoryName,
+                    selectedCategory === category.name ? null : category.name,
                   )
                 }
-                className={`px-5 py-2.5 rounded-full font-semibold transition-all shadow-md text-sm ${
-                  selectedCategory === categoryName
-                    ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
-                    : "bg-white text-dark-green hover:bg-gradient-to-r hover:from-tomato-red hover:to-saffron-yellow hover:text-white"
-                }`}
+                className={`px-5 py-2.5 rounded-full font-semibold transition-all shadow-md text-sm ${selectedCategory === category.name
+                  ? "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white"
+                  : "bg-white text-dark-green hover:bg-gradient-to-r hover:from-tomato-red hover:to-saffron-yellow hover:text-white"
+                  }`}
               >
-                {categoryName}
+                {category.name}
               </button>
             ))}
           </div>
@@ -572,128 +638,197 @@ export default function Menu() {
       )}
 
       {/* Dynamic Menu Sections */}
-      {Object.entries(categories).map(
-        ([categoryName, categoryDishes], index) => {
-          const filteredCategoryDishes = filteredDishes.filter(
-            (d) => d.categoryId?.name === categoryName,
-          );
+      {categories.map((category, index) => {
+        const categoryName = category.name;
+        const filteredCategoryDishes = filteredDishes.filter(
+          (d) => d.categoryId?.name === categoryName,
+        );
 
-          if (filteredCategoryDishes.length === 0) return null;
+        if (filteredCategoryDishes.length === 0) return null;
 
-          return (
-            <section
-              key={categoryName}
-              id={categoryName.toLowerCase().replace(/\s+/g, "-")}
-              className={`py-16 md:py-24 ${
-                index % 2 === 0 ? "bg-warm-beige" : "bg-white"
+        return (
+          <section
+            key={categoryName}
+            id={categoryName.toLowerCase().replace(/\s+/g, "-")}
+            className={`py-16 md:py-24 ${index % 2 === 0 ? "bg-warm-beige" : "bg-white"
               }`}
-            >
-              <div className="container mx-auto px-6">
-                <h2 className="text-4xl md:text-5xl font-serif font-bold text-dark-green mb-12 text-center">
-                  {categoryName}{" "}
-                  {categoryName === "Beverages" ? "Specials" : "Delights"}
-                </h2>
+          >
+            <div className="container mx-auto px-6">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold text-dark-green mb-12 text-center">
+                {categoryName}{" "}
+                {categoryName === "Beverages" ? "Specials" : "Delights"}
+              </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredCategoryDishes.map((dish) => (
-                    <motion.div
-                      key={dish._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      className={cn(
-                        "group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 relative",
-                        dish.isAvailable === false && "opacity-80",
-                      )}
-                    >
-                      {/* Unavailable Overlay */}
-                      {dish.isAvailable === false && (
-                        <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-[1px] z-20 flex items-center justify-center">
-                          <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg transform -rotate-3">
-                            Currently Unavailable
-                          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredCategoryDishes.map((dish) => (
+                  <motion.div
+                    key={dish._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className={cn(
+                      "group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 relative",
+                      dish.isAvailable === false && "opacity-80",
+                    )}
+                  >
+                    {/* Unavailable Overlay */}
+                    {dish.isAvailable === false && (
+                      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-[1px] z-20 flex items-center justify-center">
+                        <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg transform -rotate-3">
+                          Currently Unavailable
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Image Container */}
-                      <div className="relative overflow-hidden h-64 bg-dark-green/5">
-                        <img
-                          src={dish.imageUrl || "/placeholder-dish.jpg"}
-                          alt={dish.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
+                    {/* Image Container */}
+                    <div className="relative overflow-hidden h-64 bg-dark-green/5">
+                      <Image
+                        src={dish.imageUrl || "/placeholder-dish.svg"}
+                        alt={dish.name}
+                        width={400}
+                        height={300}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder-dish.svg";
+                        }}
+                      />
 
-                        {/* Favorite Button */}
-                        <button
-                          onClick={() => toggleFavorite(dish._id)}
-                          disabled={favoriteLoading === dish._id}
-                          className="absolute top-4 right-4 p-2 rounded-full bg-white shadow-lg hover:scale-110 transition-all disabled:opacity-50"
-                        >
-                          {favoriteLoading === dish._id ? (
-                            <Loader2 className="w-6 h-6 text-dark-green animate-spin" />
-                          ) : (
-                            <Heart
-                              className={`w-6 h-6 ${
-                                favorites.has(dish._id)
-                                  ? "fill-tomato-red text-tomato-red"
-                                  : "text-dark-green"
+                      {/* Favorite Button */}
+                      <button
+                        onClick={() => toggleFavorite(dish._id)}
+                        disabled={favoriteLoading === dish._id}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-white shadow-lg hover:scale-110 transition-all disabled:opacity-50"
+                      >
+                        {favoriteLoading === dish._id ? (
+                          <Loader2 className="w-6 h-6 text-dark-green animate-spin" />
+                        ) : (
+                          <Heart
+                            className={`w-6 h-6 ${favorites.has(dish._id)
+                              ? "fill-tomato-red text-tomato-red"
+                              : "text-dark-green"
                               }`}
-                            />
-                          )}
-                        </button>
+                          />
+                        )}
+                      </button>
 
-                        {/* Tags */}
-                        <div className="absolute top-4 left-4 flex gap-2">
-                          {dish.isVeg && (
-                            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                              🌱 Veg
-                            </span>
-                          )}
-                          {dish.isSpicy && (
-                            <span className="bg-tomato-red text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                              <Flame className="w-3 h-3" />
-                              Spicy
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-dark-green mb-2 group-hover:text-tomato-red transition-colors">
-                          {dish.name}
-                        </h3>
-                        <p className="text-dark-green/70 text-sm mb-4 line-clamp-2">
-                          {dish.shortDescription}
-                        </p>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-2xl font-bold text-tomato-red">
-                            ₹{(dish.pricePaise / 100).toFixed(0)}
+                      {/* Tags */}
+                      <div className="absolute top-4 left-4 flex gap-2">
+                        {dish.isVeg && (
+                          <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            🌱 Veg
                           </span>
-                          <button
-                            onClick={() => handleAddToCart(dish)}
-                            disabled={dish.isAvailable === false}
-                            className={cn(
-                              "px-4 py-2 rounded-lg font-semibold transition-transform flex items-center gap-2",
-                              dish.isAvailable === false
-                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                : "bg-gradient-to-r from-dark-green to-dark-green/80 text-white hover:scale-105",
-                            )}
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            {dish.isAvailable === false ? "Unavailable" : "Add"}
-                          </button>
-                        </div>
+                        )}
+                        {dish.isSpicy && (
+                          <span className="bg-tomato-red text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                            <Flame className="w-3 h-3" />
+                            Spicy
+                          </span>
+                        )}
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-dark-green mb-2 group-hover:text-tomato-red transition-colors">
+                        {dish.name}
+                      </h3>
+                      <p className="text-dark-green/70 text-sm mb-4 line-clamp-2">
+                        {dish.shortDescription}
+                      </p>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-2xl font-bold text-tomato-red">
+                          {formatPrice(dish.pricePaise)}
+                        </span>
+                        <button
+                          onClick={() => handleAddToCart(dish)}
+                          className="bg-dark-green text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-800 transition-colors"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-            </section>
-          );
-        },
-      )}
+            </div>
+          </section>
+        );
+      })}
+
+      {/* Uncategorized Section - Chef's Specials */}
+      {groupedDishes["Uncategorized"]?.length > 0 &&
+        (!selectedCategory || selectedCategory === "Uncategorized") && (
+          <section id="uncategorized" className="py-16 md:py-24 bg-warm-beige">
+            <div className="container mx-auto px-6">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold text-dark-green mb-12 text-center">
+                Chef&apos;s Special Additions
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {groupedDishes["Uncategorized"].map((dish) => (
+                  <motion.div
+                    key={dish._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className={cn(
+                      "group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 relative",
+                      dish.isAvailable === false && "opacity-80"
+                    )}
+                  >
+                    {/* Image Container */}
+                    <div className="relative overflow-hidden h-64 bg-dark-green/5">
+                      <Image
+                        src={dish.imageUrl || "/placeholder-dish.svg"}
+                        alt={dish.name}
+                        width={400}
+                        height={300}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "/placeholder-dish.svg";
+                        }}
+                      />
+                      <button
+                        onClick={() => toggleFavorite(dish._id)}
+                        disabled={favoriteLoading === dish._id}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-white shadow-lg hover:scale-110 transition-all disabled:opacity-50"
+                      >
+                        {favoriteLoading === dish._id ? (
+                          <Loader2 className="w-6 h-6 text-dark-green animate-spin" />
+                        ) : (
+                          <Heart
+                            className={`w-6 h-6 ${favorites.has(dish._id)
+                              ? "fill-tomato-red text-tomato-red"
+                              : "text-dark-green"
+                              }`}
+                          />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-dark-green mb-2">
+                        {dish.name}
+                      </h3>
+                      <div className="flex justify-between items-center">
+                        <span className="text-2xl font-bold text-tomato-red">
+                          {formatPrice(dish.pricePaise)}
+                        </span>
+                        <button
+                          onClick={() => handleAddToCart(dish)}
+                          className="bg-dark-green text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-800 transition-colors"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-dark-green to-dark-green/95 relative overflow-hidden">
@@ -737,38 +872,6 @@ export default function Menu() {
           </motion.div>
         </div>
       </section>
-
-      {/* Floating Cart Button */}
-      <AnimatePresence>
-        {totalItems > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
-          >
-            <button
-              onClick={() => router.push("/dashboard/checkout")}
-              className="flex items-center gap-4 bg-gradient-to-r from-dark-green to-dark-green/90 text-white px-6 py-4 rounded-2xl shadow-2xl hover:scale-105 transition-all"
-            >
-              <div className="relative">
-                <ShoppingCart className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-tomato-red text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                  {totalItems}
-                </span>
-              </div>
-              <div className="text-left">
-                <p className="text-xs text-warm-beige/80">Your Cart</p>
-                <p className="font-bold">₹{(totalPrice / 100).toFixed(0)}</p>
-              </div>
-              <div className="flex items-center gap-1 bg-white/20 px-3 py-1.5 rounded-lg">
-                <span className="font-semibold">Checkout</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <Footer />
     </div>

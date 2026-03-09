@@ -23,22 +23,29 @@ export function cn(...inputs: ClassValue[]) {
 // ============================================================================
 
 /**
- * Format a number as Indian Rupees
+ * Format a number as Indian Rupees (handles paise to rupees conversion)
  */
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amountPaise: number): string {
+  const amount = amountPaise / 100;
   return new Intl.NumberFormat(CURRENCY.locale, {
     style: "currency",
     currency: CURRENCY.code,
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
 /**
- * Format price with rupee symbol (simpler version)
+ * Format price with rupee symbol (handles paise to rupees conversion)
  */
-export function formatPrice(price: number): string {
-  return `${CURRENCY.symbol}${price.toLocaleString(CURRENCY.locale)}`;
+export function formatPrice(pricePaise: number): string {
+  const price = pricePaise / 100;
+  // Use toLocaleString with fraction digits for consistent formatting
+  const formattedPrice = price.toLocaleString(CURRENCY.locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+  return `${CURRENCY.symbol}${formattedPrice}`;
 }
 
 /**

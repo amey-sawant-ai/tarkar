@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     return apiSuccess(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
-    return apiError("Failed to fetch categories", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch categories", 500);
   }
 }
 
@@ -34,13 +34,13 @@ export async function POST(request: NextRequest) {
     const { name, slug, description, image } = body;
 
     if (!name || !slug) {
-      return apiError("Name and slug are required", 400);
+      return apiError("VALIDATION_ERROR", "Name and slug are required", 400);
     }
 
     // Check if slug already exists
     const existing = await Category.findOne({ slug });
     if (existing) {
-      return apiError("Category with this slug already exists", 400);
+      return apiError("CONFLICT", "Category with this slug already exists", 400);
     }
 
     // Get max sort order
@@ -61,6 +61,6 @@ export async function POST(request: NextRequest) {
     return apiSuccess(category, undefined, 201);
   } catch (error) {
     console.error("Error creating category:", error);
-    return apiError("Failed to create category", 500);
+    return apiError("SERVER_ERROR", "Failed to create category", 500);
   }
 }

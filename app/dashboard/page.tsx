@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/utils";
 import Image from "next/image";
 import DashboardNavbar from "@/components/DashboardNavbar";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -104,23 +105,43 @@ export default function Dashboard() {
         setError(null);
 
         const token = localStorage.getItem("auth_token");
-        const response = await fetch("/api/user/dashboard-stats", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        };
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch dashboard data: ${response.status}`);
-        }
+        // Fetch both in parallel
+        const [statsRes, favRes] = await Promise.all([
+          fetch("/api/user/dashboard-stats", { headers }),
+          fetch("/api/user/favorites", { headers }),
+        ]);
 
-        const data = await response.json();
+        if (!statsRes.ok)
+          throw new Error(`Stats fetch failed: ${statsRes.status}`);
 
-        if (data.success) {
-          setDashboardData(data.data);
+        const statsData = await statsRes.json();
+        const favData = favRes.ok
+          ? await favRes.json()
+          : { success: false, data: [] };
+
+        if (statsData.success) {
+          // Map favorites to the shape the UI expects
+          const favoriteDishes = (favData.data || []).map((fav: any) => ({
+            id: fav._id,
+            name: fav.name,
+            slug: fav.slug,
+            orders: fav.orderCount || 0,
+            pricePaise: fav.pricePaise,
+            imageUrl: fav.imageUrl || "",
+            lastOrderDate: fav.lastOrderedAt || new Date().toISOString(),
+          }));
+
+          setDashboardData({
+            ...statsData.data,
+            favoriteDishes, // override with real favorites
+          });
         } else {
-          setError(data.error?.message || "Failed to load dashboard data");
+          setError(statsData.error?.message || "Failed to load dashboard data");
         }
       } catch (error) {
         console.error("Dashboard data fetch error:", error);
@@ -179,7 +200,7 @@ export default function Dashboard() {
   }
 
   // Get user initials
-  const initials = user.name
+  const initials = (user?.name || "")
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -188,35 +209,35 @@ export default function Dashboard() {
   // Dynamic stats based on fetched data
   const stats = dashboardData
     ? [
-        {
-          icon: ShoppingBag,
-          label: t("stats.totalOrders"),
-          value: dashboardData.stats.totalOrders.toString(),
-          change: `${dashboardData.stats.recentOrdersThisMonth} ${t("common.thisMonth")}`,
-          color: "tomato-red",
-        },
-        {
-          icon: Wallet,
-          label: t("stats.walletBalance"),
-          value: `₹${(user.walletBalancePaise / 100).toFixed(2)}`,
-          change: `${t("common.available")}`,
-          color: "saffron-yellow",
-        },
-        {
-          icon: Star,
-          label: t("stats.memberSince"),
-          value: new Date(user.createdAt).getFullYear().toString(),
-          change: `${new Date(user.createdAt).toLocaleDateString()}`,
-          color: "dark-green",
-        },
-        {
-          icon: CreditCard,
-          label: t("stats.totalSpent"),
-          value: `₹${(dashboardData.stats.totalSpentPaise / 100).toFixed(2)}`,
-          change: `${dashboardData.stats.deliveredOrders} ${t("common.orders")}`,
-          color: "tomato-red",
-        },
-      ]
+      {
+        icon: ShoppingBag,
+        label: t("stats.totalOrders"),
+        value: dashboardData.stats.totalOrders.toString(),
+        change: `${dashboardData.stats.recentOrdersThisMonth} ${t("common.thisMonth")}`,
+        color: "tomato-red",
+      },
+      {
+        icon: Wallet,
+        label: t("stats.walletBalance"),
+        value: formatPrice(user.walletBalancePaise || 0),
+        change: `${t("common.available")}`,
+        color: "saffron-yellow",
+      },
+      {
+        icon: Star,
+        label: t("stats.memberSince"),
+        value: user?.createdAt ? new Date(user.createdAt).getFullYear().toString() : "N/A",
+        change: user?.createdAt ? `${new Date(user.createdAt).toLocaleDateString()}` : "N/A",
+        color: "dark-green",
+      },
+      {
+        icon: CreditCard,
+        label: t("stats.totalSpent"),
+        value: formatPrice(dashboardData.stats.totalSpentPaise),
+        change: `${dashboardData.stats.deliveredOrders} ${t("common.orders")}`,
+        color: "tomato-red",
+      },
+    ]
     : [];
 
   const handleLogout = () => {
@@ -372,7 +393,7 @@ export default function Dashboard() {
               </div>
               <div className="relative z-10">
                 <h2 className="text-3xl md:text-4xl font-serif font-bold mb-2">
-                  {t("dashboard.welcomeBack")}, {user.name.split(" ")[0]}! 👋
+                  {t("dashboard.welcomeBack")}, {user?.name?.split(" ")[0]}! 👋
                 </h2>
                 <p className="text-warm-beige/80 text-lg mb-6">
                   {t("dashboard.rewardPointsMessage").replace(
@@ -509,15 +530,14 @@ export default function Dashboard() {
                               #{order.orderNumber}
                             </span>
                             <span
-                              className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                                order.status === "delivered"
-                                  ? "bg-green-100 text-green-700"
-                                  : order.status === "preparing"
-                                    ? "bg-orange-100 text-orange-700"
-                                    : order.status === "pending"
-                                      ? "bg-yellow-100 text-yellow-700"
-                                      : "bg-gray-100 text-gray-700"
-                              }`}
+                              className={`px-3 py-1 text-xs font-semibold rounded-full ${order.status === "delivered"
+                                ? "bg-green-100 text-green-700"
+                                : order.status === "preparing"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : order.status === "pending"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
                             >
                               {order.status}
                             </span>
@@ -532,7 +552,7 @@ export default function Dashboard() {
                         </div>
                         <div className="text-right">
                           <p className="text-xl font-bold text-dark-green">
-                            ₹{(order.totalPaise / 100).toFixed(2)}
+                            {formatPrice(order.totalPaise)}
                           </p>
                           <Button
                             size="sm"
@@ -561,7 +581,7 @@ export default function Dashboard() {
                   {t("dashboard.yourFavorites")}
                 </h3>
                 <Link
-                  href="#"
+                  href="/dashboard/favorites"
                   className="text-tomato-red hover:text-saffron-yellow font-semibold text-sm"
                 >
                   {t("dashboard.manage")}
@@ -608,11 +628,14 @@ export default function Dashboard() {
                       >
                         {dish.imageUrl ? (
                           <Image
-                            src={dish.imageUrl}
+                            src={dish.imageUrl || "/placeholder-dish.svg"}
                             alt={dish.name}
                             width={300}
                             height={200}
                             className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/placeholder-dish.svg";
+                            }}
                           />
                         ) : (
                           <div className="w-full h-40 bg-gradient-to-br from-tomato-red/20 to-saffron-yellow/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -628,7 +651,7 @@ export default function Dashboard() {
                           </h4>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-tomato-red font-bold text-lg">
-                              ₹{(dish.pricePaise / 100).toFixed(2)}
+                              {formatPrice(dish.pricePaise)}
                             </span>
                             <span className="text-dark-green/60 text-sm">
                               {t("dashboard.ordered")} {dish.orders}x
@@ -637,7 +660,10 @@ export default function Dashboard() {
                           <p className="text-dark-green/50 text-xs mb-3">
                             {t("dashboard.lastOrdered")}: {lastOrderDate}
                           </p>
-                          <Button className="w-full bg-gradient-to-r from-tomato-red to-saffron-yellow text-white hover:shadow-xl">
+                          <Button
+                            onClick={() => router.push(`/menu?dish=${dish.slug}`)}
+                            className="w-full bg-gradient-to-r from-tomato-red to-saffron-yellow text-white hover:shadow-xl"
+                          >
                             {t("order.orderAgain")}
                           </Button>
                         </div>

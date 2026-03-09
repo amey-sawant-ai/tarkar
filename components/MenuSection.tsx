@@ -4,8 +4,13 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MenuItem {
+  id?: string;
   name: string;
   desc: string;
   price: string;
@@ -23,6 +28,18 @@ export default function MenuSection({
   items,
   delay = 0,
 }: MenuSectionProps) {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
+
+  const handleOrder = (item: MenuItem) => {
+    if (!isAuthenticated) {
+      router.push("/login?redirect=/dashboard/order");
+    } else {
+      router.push("/dashboard/order");
+    }
+  };
+
   return (
     <section className="py-16 md:py-24 bg-warm-beige">
       <div className="container mx-auto px-6 md:px-12">
@@ -106,9 +123,13 @@ export default function MenuSection({
                 {/* Order Button */}
                 <Button
                   size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOrder(item);
+                  }}
                   className="w-full bg-gradient-to-r from-dark-green to-dark-green/90 hover:from-tomato-red hover:to-saffron-yellow text-white shadow-md hover:shadow-lg transition-all font-semibold group/btn"
                 >
-                  Order Now
+                  {t("action.orderNow")}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
               </div>
@@ -124,10 +145,11 @@ export default function MenuSection({
           className="text-center"
         >
           <Button className="bg-dark-green hover:bg-dark-green/90 text-white rounded-full px-8 group">
-            Book a Table
+            {t("home.bookTable")}
             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
         </motion.div>
+
       </div>
     </section>
   );

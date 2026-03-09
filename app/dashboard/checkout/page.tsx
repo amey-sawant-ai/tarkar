@@ -15,13 +15,18 @@ import {
   Loader2,
   ShoppingBag,
   ArrowLeft,
+  Wallet,
+  IndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardNavbar from "@/components/DashboardNavbar";
+import PaymentButton from "@/components/PaymentButton";
+import CODPaymentButton from "@/components/CODPaymentButton";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice, calculateOrderTotal } from "@/lib/utils";
+import { PRICING } from "@/lib/constants";
 
 // Types
 interface Address {
@@ -82,6 +87,7 @@ export default function CheckoutPage() {
   const [isLoadingPayments, setIsLoadingPayments] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   // New address form state
   const [newAddress, setNewAddress] = useState({
@@ -98,9 +104,10 @@ export default function CheckoutPage() {
   });
 
   // Calculate order totals
-  const subtotalPaise = totalPrice;
-  const taxPaise = Math.round(subtotalPaise * 0.05);
-  const deliveryFeePaise = deliveryType === "delivery" ? 5000 : 0;
+  const totals = calculateOrderTotal(totalPrice);
+  const subtotalPaise = totals.subtotal;
+  const taxPaise = totals.tax;
+  const deliveryFeePaise = deliveryType === "delivery" ? totals.deliveryFee : 0;
   const totalPaise = subtotalPaise + taxPaise + deliveryFeePaise;
 
   // Redirect if not authenticated
@@ -228,7 +235,18 @@ export default function CheckoutPage() {
     }
   };
 
-  // Place order
+  const handlePaymentSuccess = () => {
+    clearCart();
+    showToast("Payment successful! Order confirmed.", "success");
+    setTimeout(() => {
+      router.push(`/dashboard/order-tracking?orderId=${createdOrderId}`);
+    }, 1500);
+  };
+
+  const handlePaymentError = (error: string) => {
+    showToast(`Payment failed: ${error}`, "error");
+  };
+
   const handlePlaceOrder = async () => {
     if (!token) return;
 
@@ -264,7 +282,7 @@ export default function CheckoutPage() {
           selectedPaymentId === "cod"
             ? "cod"
             : paymentMethods.find((p) => p._id === selectedPaymentId)?.type ||
-              "cod",
+            "cod",
         notes: orderNotes || undefined,
       };
 
@@ -280,9 +298,8 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (data.success) {
-        clearCart();
-        showToast("Order placed successfully!", "success");
-        router.push(`/dashboard/order-tracking?orderId=${data.data._id}`);
+        // Store the created order ID and show payment methods
+        setCreatedOrderId(data.data._id);
       } else {
         showToast(data.error?.message || "Failed to place order", "error");
       }
@@ -306,6 +323,80 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-warm-beige">
       <DashboardNavbar title="Checkout" subtitle="Complete your order" />
+
+      {/* Payment Modal */}
+      {createdOrderId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full"
+          >
+            <h3 className="text-2xl font-bold text-dark-green mb-2">
+              Complete Payment
+            </h3>
+            <p className="text-dark-green/70 mb-6">
+              Order created! Now choose your payment method.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              {/* Razorpay Payment Option */}
+              <div className="bg-gradient-to-r from-tomato-red/10 to-saffron-yellow/10 rounded-xl p-4 border-2 border-tomato-red/20">
+                <p className="font-semibold text-dark-green mb-3">
+                  Online Payment
+                </p>
+                <PaymentButton
+                  orderId={createdOrderId}
+                  amount={totalPaise}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  className="w-full"
+                  size="lg"
+                />
+                <p className="text-xs text-dark-green/60 text-center mt-2">
+                  Credit/Debit Card, UPI, Wallet
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-dark-green/20"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-dark-green/60">
+                    OR
+                  </span>
+                </div>
+              </div>
+
+              {/* COD Payment Option */}
+              <div className="bg-gradient-to-r from-saffron-yellow/10 to-warm-beige rounded-xl p-4 border-2 border-saffron-yellow/20">
+                <p className="font-semibold text-dark-green mb-3">
+                  Cash on Delivery
+                </p>
+                <CODPaymentButton
+                  orderId={createdOrderId}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  className="w-full"
+                  size="lg"
+                />
+                <p className="text-xs text-dark-green/60 text-center mt-2">
+                  Pay when your order arrives
+                </p>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => setCreatedOrderId(null)}
+              className="w-full"
+            >
+              Back to Checkout
+            </Button>
+          </motion.div>
+        </div>
+      )}
 
       <div className="container mx-auto px-6 py-8">
         <Button
@@ -353,7 +444,7 @@ export default function CheckoutPage() {
                     Home Delivery
                   </span>
                   <span className="text-sm text-dark-green/60">
-                    ₹50 delivery fee
+                    {formatPrice(PRICING.deliveryFee)} delivery fee
                   </span>
                 </button>
 
@@ -633,7 +724,7 @@ export default function CheckoutPage() {
             )}
 
             {/* Payment Method Selection */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -677,14 +768,10 @@ export default function CheckoutPage() {
                             </span>
                           )}
                           {method.type === "wallet" && (
-                            <span className="text-sm font-bold text-dark-green">
-                              ₹
-                            </span>
+                            <Wallet className="w-5 h-5 text-dark-green" />
                           )}
                           {method.type === "cod" && (
-                            <span className="text-sm font-bold text-dark-green">
-                              ₹
-                            </span>
+                            <IndianRupee className="w-5 h-5 text-dark-green" />
                           )}
                         </div>
                         <div>
@@ -710,7 +797,7 @@ export default function CheckoutPage() {
                   ))}
                 </div>
               )}
-            </motion.div>
+            </motion.div> */}
 
             {/* Order Notes */}
             <motion.div
@@ -757,11 +844,11 @@ export default function CheckoutPage() {
                         {item.name}
                       </p>
                       <p className="text-sm text-dark-green/60">
-                        ₹{(item.price / 100).toFixed(0)} × {item.quantity}
+                        {formatPrice(item.price)} × {item.quantity}
                       </p>
                     </div>
                     <p className="font-bold text-dark-green ml-4">
-                      ₹{((item.price * item.quantity) / 100).toFixed(0)}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -771,24 +858,24 @@ export default function CheckoutPage() {
               <div className="space-y-3 border-t border-dark-green/10 pt-4">
                 <div className="flex justify-between text-dark-green/70">
                   <span>Subtotal</span>
-                  <span>₹{(subtotalPaise / 100).toFixed(2)}</span>
+                  <span>{formatPrice(subtotalPaise)}</span>
                 </div>
                 <div className="flex justify-between text-dark-green/70">
                   <span>Tax (5%)</span>
-                  <span>₹{(taxPaise / 100).toFixed(2)}</span>
+                  <span>{formatPrice(taxPaise)}</span>
                 </div>
                 <div className="flex justify-between text-dark-green/70">
                   <span>Delivery Fee</span>
                   <span>
                     {deliveryFeePaise === 0
                       ? "FREE"
-                      : `₹${(deliveryFeePaise / 100).toFixed(2)}`}
+                      : formatPrice(deliveryFeePaise)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xl font-bold text-dark-green border-t border-dark-green/10 pt-3">
                   <span>Total</span>
                   <span className="text-tomato-red">
-                    ₹{(totalPaise / 100).toFixed(2)}
+                    {formatPrice(totalPaise)}
                   </span>
                 </div>
               </div>
@@ -798,7 +885,8 @@ export default function CheckoutPage() {
                 onClick={handlePlaceOrder}
                 disabled={
                   isPlacingOrder ||
-                  (deliveryType === "delivery" && !selectedAddressId)
+                  (deliveryType === "delivery" && !selectedAddressId) ||
+                  createdOrderId !== null
                 }
                 className="w-full mt-6 bg-gradient-to-r from-tomato-red to-saffron-yellow text-white hover:shadow-2xl font-bold py-6 text-lg disabled:opacity-50"
               >

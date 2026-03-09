@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching dishes:", error);
-    return apiError("Failed to fetch dishes", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch dishes", 500);
   }
 }
 
@@ -76,13 +76,13 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const { name, description, pricePaise, category } = body;
     if (!name || !description || !pricePaise || !category) {
-      return apiError("Name, description, price, and category are required", 400);
+      return apiError("BAD_REQUEST", "Name, description, price, and category are required", 400);
     }
 
     // Look up category by slug to get categoryId
     const categoryDoc = await Category.findOne({ slug: category });
     if (!categoryDoc) {
-      return apiError("Category not found", 400);
+      return apiError("NOT_FOUND", "Category not found", 404);
     }
 
     // Generate slug from name
@@ -114,6 +114,6 @@ export async function POST(request: NextRequest) {
     return apiSuccess(dish, undefined, 201);
   } catch (error) {
     console.error("Error creating dish:", error);
-    return apiError("Failed to create dish", 500);
+    return apiError("SERVER_ERROR", "Failed to create dish", 500);
   }
 }

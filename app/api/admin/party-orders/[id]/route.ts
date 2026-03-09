@@ -17,14 +17,14 @@ export async function GET(
   const { id } = await params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return apiError("Invalid party order ID", 400);
+    return apiError("BAD_REQUEST", "Invalid party order ID", 400);
   }
 
   try {
     const order = await PartyOrder.findById(id).lean();
 
     if (!order) {
-      return apiError("Party order not found", 404);
+      return apiError("NOT_FOUND", "Party order not found", 404);
     }
 
     return apiSuccess({
@@ -50,7 +50,7 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching party order:", error);
-    return apiError("Failed to fetch party order", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch party order", 500);
   }
 }
 
@@ -67,14 +67,14 @@ export async function PATCH(
   const { id } = await params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return apiError("Invalid party order ID", 400);
+    return apiError("BAD_REQUEST", "Invalid party order ID", 400);
   }
 
   try {
     const order = await PartyOrder.findById(id);
 
     if (!order) {
-      return apiError("Party order not found", 404);
+      return apiError("NOT_FOUND", "Party order not found", 404);
     }
 
     const body = await request.json();
@@ -97,6 +97,7 @@ export async function PATCH(
 
       if (!validTransitions[order.status]?.includes(status)) {
         return apiError(
+          "BAD_REQUEST",
           `Invalid status transition from ${order.status} to ${status}`,
           400
         );
@@ -135,6 +136,6 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Error updating party order:", error);
-    return apiError("Failed to update party order", 500);
+    return apiError("SERVER_ERROR", "Failed to update party order", 500);
   }
 }

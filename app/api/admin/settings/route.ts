@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     return apiSuccess(settings?.value || null);
   } catch (error) {
     console.error("Error fetching settings:", error);
-    return apiError("Failed to fetch settings", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch settings", 500);
   }
 }
 
@@ -51,6 +51,6 @@ export async function PUT(request: NextRequest) {
     return apiSuccess(settings?.value);
   } catch (error) {
     console.error("Error updating settings:", error);
-    return apiError("Failed to update settings", 500);
+    return apiError("SERVER_ERROR", "Failed to update settings", 500);
   }
 }

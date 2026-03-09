@@ -1,0 +1,163 @@
+[dotenv@17.2.3] injecting env (6) from .env.local -- tip: ≡ƒùé∩╕Å backup and recover secrets: https://dotenvx.com/ops
+(node:23924) [MONGOOSE] Warning: `isNew` is a reserved schema pathname and may break some functionality. You are allowed to use it, but use at your own risk. To disable this warning pass `suppressReservedKeysWarning` as a schema option.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Γ£à Connected to MongoDB
+Γ£à Updated: "Butter Naan" -> Γé╣30.00
+Γ£à Updated: "Jeera Rice" -> Γé╣179.00
+Γ£à Updated: "Aachari Chana Pulao" -> Γé╣190.00
+Γ£à Updated: "Aaloo Stuff Parotha" -> Γé╣80.00
+Γ£à Updated: "Babycorn Chilly" -> Γé╣180.00
+Γ£à Updated: "Babycorn Mushroom Chilly" -> Γé╣190.00
+Γ£à Updated: "Babycorn Mushroom Patai" -> Γé╣190.00
+Γ£à Updated: "Big Chinese Vegetable Trio Soup ( Diabetic Recipe ) 2368" -> Γé╣160.00
+Γ£à Updated: "Burnt Garlic Chilly Noodle" -> Γé╣180.00
+Γ£à Updated: "Butter Garlic Naan" -> Γé╣35.00
+Γ£à Updated: "Butter Garlic Roti" -> Γé╣25.00
+Γ£à Updated: "Butter Jeera Naan" -> Γé╣35.00
+Γ£à Updated: "Butter Kulcha" -> Γé╣35.00
+Γ£à Updated: "Butter Pav" -> Γé╣20.00
+Γ£à Updated: "Butter Roti" -> Γé╣20.00
+Γ£à Updated: "Caramel Custurd" -> Γé╣100.00
+Γ£à Updated: "Chaha Garlic Dry" -> Γé╣190.00
+Γ£à Updated: "Cheese Butter Garlic Naan" -> Γé╣50.00
+Γ£à Updated: "Cheese Butter Garlic Roti" -> Γé╣40.00
+Γ£à Updated: "Cheese Chilly Masala Pav" -> Γé╣180.00
+Γ£à Updated: "Cheese Garlic Naan" -> Γé╣45.00
+Γ£à Updated: "Cheese Parotha" -> Γé╣90.00
+Γ£à Updated: "Chilli Mushroom Recipe" -> Γé╣190.00
+Γ£à Updated: "Chinese Bhel" -> Γé╣140.00
+Γ£à Updated: "Coffee Panacata" -> Γé╣110.00
+Γ£à Updated: "Corn Bhel" -> Γé╣140.00
+Γ£à Updated: "Corn Fried Rice" -> Γé╣160.00
+Γ£à Updated: "Corn Sz Fried Rice" -> Γé╣170.00
+Γ£à Updated: "Cream Of Spinach" -> Γé╣150.00
+Γ£à Updated: "Crispy Chilli Baby Corn Recipe In Hindi" -> Γé╣180.00
+Γ£à Updated: "Custurd Gulab Jamun" -> Γé╣120.00
+Γ£à Updated: "Dal Khichdi With Tadka" -> Γé╣170.00
+Γ£à Updated: "Dal Khichdi" -> Γé╣160.00
+Γ£à Updated: "Dal Kolhapuri Tadka" -> Γé╣180.00
+Γ£à Updated: "Dal Kolhapuri" -> Γé╣170.00
+Γ£à Updated: "Dal Makhni" -> Γé╣180.00
+Γ£à Updated: "Deggi Mirch Ka Dal Tadka" -> Γé╣170.00
+Γ£à Updated: "Double Maska Pav Bhaji" -> Γé╣180.00
+Γ£à Updated: "Dragon Paneer" -> Γé╣220.00
+Γ£à Updated: "Fulson Dal Khichdi" -> Γé╣180.00
+Γ£à Updated: "Gobi 65" -> Γé╣180.00
+Γ£à Updated: "Gobi Stuff Parotha" -> Γé╣80.00
+Γ£à Updated: "Green Peas Mint Pulao" -> Γé╣170.00
+Γ£à Updated: "Green Salad" -> Γé╣100.00
+Γ£à Updated: "Hakka Noodles Recipe" -> Γé╣170.00
+Γ£à Updated: "Hare Pyaz Lasooni Khichadi" -> Γé╣180.00
+Γ£à Updated: "Hariyali Dal Tadka" -> Γé╣170.00
+Γ£à Updated: "Home Style Dal Fry" -> Γé╣160.00
+Γ£à Updated: "Hong Kong Noodle" -> Γé╣180.00
+Γ£à Updated: "Hot Garlic Sauce" -> Γé╣150.00
+Γ£à Updated: "Hot Garlic Soya Choop" -> Γé╣210.00
+Γ£à Updated: "Hot And Sour Soup " -> Γé╣140.00
+Γ£à Updated: "Hydrabadi Biryani" -> Γé╣220.00
+Γ£à Updated: "Jain Aachari Paneer" -> Γé╣220.00
+Γ£à Updated: "Jain Aachari Subz" -> Γé╣200.00
+Γ£à Updated: "Jain Dal Fry" -> Γé╣160.00
+Γ£à Updated: "Jain Dal Khichdi" -> Γé╣160.00
+Γ£à Updated: "Jain Kadhai Paneer" -> Γé╣220.00
+Γ£à Updated: "Jain Kadhai Subz" -> Γé╣200.00
+Γ£à Updated: "Jain Kesari Paneer Karma" -> Γé╣230.00
+Γ£à Updated: "Jain Paneer Butter Masala" -> Γé╣220.00
+Γ£à Updated: "Jain Paneer Kolhapuri" -> Γé╣220.00
+Γ£à Updated: "Jain Paneer Lababdar" -> Γé╣220.00
+Γ£à Updated: "Jain Subz Kesri Kroma" -> Γé╣200.00
+Γ£à Updated: "Jain Subz Kolhapuri" -> Γé╣200.00
+Γ£à Updated: "Jain Subz Lababdar" -> Γé╣200.00
+Γ£à Updated: "Jain Subz Nizami Handi" -> Γé╣210.00
+Γ£à Updated: "Jain Tawa Pulao" -> Γé╣180.00
+Γ£à Updated: "Jeera Butter Roti" -> Γé╣25.00
+Γ£à Updated: "Jeera Naan" -> Γé╣30.00
+Γ£à Updated: "Jeera Parotha" -> Γé╣75.00
+Γ£à Updated: "Jeera Roti" -> Γé╣20.00
+Γ£à Updated: "Kashmiri Naan" -> Γé╣40.00
+Γ£à Updated: "Khada Paneer Pav Bhaji" -> Γé╣190.00
+Γ£à Updated: "Kobi Manchurian" -> Γé╣180.00
+Γ£à Updated: "Kolhapuri Dal Khichadi Tadka" -> Γé╣180.00
+Γ£à Updated: "Kolhapuri Dal Khichadi" -> Γé╣170.00
+Γ£à Updated: "Kulcha" -> Γé╣30.00
+Γ£à Updated: "Lasooni Dal Palak" -> Γé╣170.00
+Γ£à Updated: "Lemon Coriander Soup" -> Γé╣140.00
+Γ£à Updated: "Manchow Soup 2" -> Γé╣140.00
+Γ£à Updated: "Manchurian Bhel" -> Γé╣150.00
+Γ£à Updated: "Manchurian Soup" -> Γé╣140.00
+Γ£à Updated: "Mangolian Veg Crispy" -> Γé╣190.00
+Γ£à Updated: "Masala Chaas" -> Γé╣80.00
+Γ£à Updated: "Masala Chatpata Dal Khichadi" -> Γé╣180.00
+Γ£à Updated: "Masala Chatpata Dal" -> Γé╣170.00
+Γ£à Updated: "Moti Pulao" -> Γé╣220.00
+Γ£à Updated: "Mushroom Chilly Garlic Noodle" -> Γé╣190.00
+Γ£à Updated: "Mushroom Chilly Noodle" -> Γé╣190.00
+Γ£à Updated: "Mushroom Crispy" -> Γé╣190.00
+Γ£à Updated: "Mushroom Fried Rice" -> Γé╣180.00
+Γ£à Updated: "Mushroom Garlic Dry" -> Γé╣190.00
+Γ£à Updated: "Mushroom Mangolian" -> Γé╣200.00
+Γ£à Updated: "Mushroom Patai" -> Γé╣200.00
+Γ£à Updated: "Mushroom Sz Fried Rice" -> Γé╣180.00
+Γ£à Updated: "Mushroom Tikka Biryani" -> Γé╣230.00
+Γ£à Updated: "Mushroom Tikka Kepsa" -> Γé╣220.00
+Γ£à Updated: "Naan" -> Γé╣25.00
+Γ£à Updated: "Navratan Pulao" -> Γé╣180.00
+Γ£à Updated: "Nizami Biryani" -> Γé╣220.00
+Γ£à Updated: "Palak Dal Khichadi" -> Γé╣170.00
+Γ£à Updated: "Panacata" -> Γé╣100.00
+Γ£à Updated: "Panchratna Dal" -> Γé╣180.00
+Γ£à Updated: "Paneer 65" -> Γé╣200.00
+Γ£à Updated: "Paneer Crispy" -> Γé╣200.00
+Γ£à Updated: "Paneer Garlic Dry" -> Γé╣200.00
+Γ£à Updated: "Paneer Hakka Noodle" -> Γé╣200.00
+Γ£à Updated: "Paneer Manchurian Noodles" -> Γé╣200.00
+Γ£à Updated: "Paneer Manchurian" -> Γé╣200.00
+Γ£à Updated: "Paneer Masala Pav" -> Γé╣180.00
+Γ£à Updated: "Paneer Patai" -> Γé╣210.00
+Γ£à Updated: "Paneer Peppery Rice With Gravy" -> Γé╣220.00
+Γ£à Updated: "Paneer Peppey Noodles With Gravy" -> Γé╣220.00
+Γ£à Updated: "Paneer Stuff Parotha" -> Γé╣90.00
+Γ£à Updated: "Paneer Tika Biryani" -> Γé╣230.00
+Γ£à Updated: "Paneer Tikka Kepsa" -> Γé╣230.00
+Γ£à Updated: "Paneer Triple Noodle" -> Γé╣210.00
+Γ£à Updated: "Pav Bhaji" -> Γé╣160.00
+Γ£à Updated: "Plain Butter Parotha" -> Γé╣70.00
+Γ£à Updated: "Plain Manchurian Gravy" -> Γé╣160.00
+Γ£à Updated: "Plain Schezwan Gravy" -> Γé╣160.00
+Γ£à Updated: "Pyaz Pudina Kulcha" -> Γé╣40.00
+Γ£à Updated: "Raita" -> Γé╣80.00
+Γ£à Updated: "Roti" -> Γé╣15.00
+Γ£à Updated: "Scripy Chilli Patato" -> Γé╣170.00
+Γ£à Updated: "Singapore Noodle" -> Γé╣180.00
+Γ£à Updated: "Solkadhi" -> Γé╣90.00
+Γ£à Updated: "Soya Chaap Tikka Biryani" -> Γé╣230.00
+Γ£à Updated: "Soya Chaap Tikka Pulav" -> Γé╣220.00
+Γ£à Updated: "Soya Chilly" -> Γé╣200.00
+Γ£à Updated: "Steam Rice" -> Γé╣120.00
+Γ£à Updated: "Subz Aachari Pulao" -> Γé╣180.00
+Γ£à Updated: "Subz Biryani" -> Γé╣200.00
+Γ£à Updated: "Subz Tawa Pulao" -> Γé╣180.00
+Γ£à Updated: "Tarkari Cheese Pav Bhaji" -> Γé╣220.00
+Γ£à Updated: "Tarkari Fusion Biryani" -> Γé╣250.00
+Γ£à Updated: "Tarkari Masala Pav" -> Γé╣190.00
+Γ£à Updated: "Tarkari Pulao" -> Γé╣190.00
+Γ£à Updated: "Veg 65" -> Γé╣180.00
+Γ£à Updated: "Veg Chilly" -> Γé╣170.00
+Γ£à Updated: "Veg Fried Rice" -> Γé╣160.00
+Γ£à Updated: "Veg Garlic Dry" -> Γé╣180.00
+Γ£à Updated: "Veg Jeera Fried Rice" -> Γé╣165.00
+Γ£à Updated: "Veg Manchurian Noodle" -> Γé╣180.00
+Γ£à Updated: "Veg Manchurian" -> Γé╣180.00
+Γ£à Updated: "Veg Peppery Noodles With Gravy" -> Γé╣200.00
+Γ£à Updated: "Veg Peppery Rice With Gravy" -> Γé╣200.00
+ΓÜá∩╕Å  No price found for: "Veg Schezwan"
+Γ£à Updated: "Veg Triple Noodle" -> Γé╣190.00
+Γ£à Updated: "Veg Crispy" -> Γé╣180.00
+Γ£à Updated: "Vegetable Noodle Soup" -> Γé╣140.00
+Γ£à Updated: "Hot And Sour Soup " -> Γé╣140.00
+Γ£à Updated: "Hot And Sour Soup " -> Γé╣140.00
+
+≡ƒôè Update Summary:
+   - Dishes Updated: 153
+   - Dishes Skipped (No Match): 1
+   - Total Dishes Proccessed: 154

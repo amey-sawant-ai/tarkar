@@ -5,12 +5,13 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatPrice } from "@/lib/utils";
 
 interface DishCardProps {
   id: number;
   name: string;
   desc: string;
-  price: number;
+  pricePaise: number;
   category: string;
   type?: string;
   image: string;
@@ -34,7 +35,7 @@ export default function DishCard({
   id,
   name,
   desc,
-  price,
+  pricePaise,
   category,
   type,
   image,
@@ -58,9 +59,8 @@ export default function DishCard({
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all group relative ${
-        !isAvailable ? "opacity-75" : ""
-      }`}
+      className={`bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all group relative ${!isAvailable ? "opacity-75" : ""
+        }`}
     >
       {/* Availability Overlay */}
       {!isAvailable && (
@@ -72,15 +72,18 @@ export default function DishCard({
       )}
       <div className="relative h-48 overflow-hidden">
         <Image
-          src={image}
+          src={image || "/placeholder-dish.svg"}
           alt={name}
           width={400}
           height={300}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/placeholder-dish.svg";
+          }}
         />
         {/* Price Badge */}
         <div className="absolute top-3 right-3 bg-gradient-to-r from-tomato-red to-saffron-yellow text-white px-3 py-1 rounded-full font-bold text-sm">
-          ₹{price}
+          {formatPrice(pricePaise)}
         </div>
         {/* Category Badge */}
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-dark-green px-3 py-1 rounded-full font-semibold text-xs">
@@ -97,11 +100,10 @@ export default function DishCard({
           }
         >
           <Heart
-            className={`w-5 h-5 transition-all ${
-              isFavorite
-                ? "fill-tomato-red text-tomato-red scale-110"
-                : "text-dark-green/70 group-hover/heart:text-tomato-red group-hover/heart:scale-110"
-            }`}
+            className={`w-5 h-5 transition-all ${isFavorite
+              ? "fill-tomato-red text-tomato-red scale-110"
+              : "text-dark-green/70 group-hover/heart:text-tomato-red group-hover/heart:scale-110"
+              }`}
           />
         </button>
       </div>
@@ -201,11 +203,10 @@ export default function DishCard({
           <Button
             onClick={() => onAddToCart?.(id)}
             disabled={!isAvailable}
-            className={`w-full font-semibold ${
-              !isAvailable
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white hover:shadow-xl"
-            }`}
+            className={`w-full font-semibold ${!isAvailable
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-gradient-to-r from-tomato-red to-saffron-yellow text-white hover:shadow-xl"
+              }`}
           >
             {!isAvailable ? "Unavailable" : t("cart.addToCart")}
           </Button>

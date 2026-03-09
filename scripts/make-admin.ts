@@ -30,15 +30,14 @@ const UserSchema = new mongoose.Schema({
 async function makeAdmin(email: string) {
   try {
     console.log(`🔗 Connecting to MongoDB...`);
-    await mongoose.connect(MONGODB_URI, {
+    await mongoose.connect(MONGODB_URI as string, {
       dbName: process.env.MONGODB_DB || "tarkari",
     });
     console.log(`✅ Connected to MongoDB`);
 
     const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: (email || "").toLowerCase() });
 
     if (!user) {
       console.error(`❌ User with email "${email}" not found`);

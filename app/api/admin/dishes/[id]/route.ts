@@ -27,7 +27,7 @@ export async function GET(
     return apiSuccess(dish);
   } catch (error) {
     console.error("Error fetching dish:", error);
-    return apiError("Failed to fetch dish", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch dish", 500);
   }
 }
 
@@ -90,7 +90,7 @@ export async function PATCH(
     return apiSuccess(dish);
   } catch (error) {
     console.error("Error updating dish:", error);
-    return apiError("Failed to update dish", 500);
+    return apiError("SERVER_ERROR", "Failed to update dish", 500);
   }
 }
 
@@ -116,6 +116,6 @@ export async function DELETE(
     return apiSuccess({ message: "Dish deleted successfully" });
   } catch (error) {
     console.error("Error deleting dish:", error);
-    return apiError("Failed to delete dish", 500);
+    return apiError("SERVER_ERROR", "Failed to delete dish", 500);
   }
 }

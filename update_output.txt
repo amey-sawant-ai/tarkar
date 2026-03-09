@@ -1,0 +1,35 @@
+[dotenv@17.2.3] injecting env (6) from .env.local -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+(node:3596) [MONGOOSE] Warning: `isNew` is a reserved schema pathname and may break some functionality. You are allowed to use it, but use at your own risk. To disable this warning pass `suppressReservedKeysWarning` as a schema option.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Γ£à Connected to MongoDB
+≡ƒôé Found 152 files in /public/photos
+
+≡ƒôè Matching Summary:
+   - Total Dishes in DB: 170
+   - Matched: 151
+   - Updated in DB: 0
+   - Unmatched Dishes (19):
+      - Paneer Tikka
+      - Samosa
+      - Chicken Tikka
+      - Butter Chicken
+      - Dal Makhani
+      - Palak Paneer
+      - Rogan Josh
+      - Garlic Naan
+      - Tandoori Roti
+      - Chicken Biryani
+      - Vegetable Biryani
+      - Gulab Jamun
+      - Rasmalai
+      - Kheer
+      - Mango Lassi
+      - Sweet Lassi
+      - Masala Chai
+      - Hot And Sour Soup 
+      - Hot And Sour Soup 
+
+≡ƒåò Found 1 photos with no matching dish. Creating them...
+Γ£¿ Created new dish (with random slug): "Hot And Sour Soup "
+
+Γ£à All done!

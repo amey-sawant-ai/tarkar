@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Eye, EyeOff, Lock, Loader2, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/contexts/ToastContext";
 
-export default function ResetPasswordPage() {
+// Child component that uses useSearchParams()
+function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -263,5 +264,23 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// Parent page component with Suspense boundary
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-warm-beige flex items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-dark-green mx-auto mb-4" />
+        <p className="text-dark-green/60">Loading...</p>
+      </motion.div>
+    </div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

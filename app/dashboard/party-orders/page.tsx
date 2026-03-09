@@ -34,6 +34,7 @@ import {
 } from "@/lib/partyOrdersData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { formatPrice, cn } from "@/lib/utils";
 
 interface PartyOrderItem {
   packageId: number;
@@ -184,7 +185,7 @@ export default function PartyOrdersPage() {
               packageId: selectedPackage.id,
               packageName: selectedPackage.name,
               quantity: bookingData.quantity,
-              pricePaise: selectedPackage.price * 100,
+              pricePaise: selectedPackage.pricePaise,
               servings: selectedPackage.servings,
               category: selectedPackage.category,
               items: selectedPackage.items,
@@ -270,10 +271,6 @@ export default function PartyOrdersPage() {
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
-  const formatPrice = (paise: number) => {
-    return `₹${(paise / 100).toLocaleString("en-IN")}`;
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -295,11 +292,10 @@ export default function PartyOrdersPage() {
           <Button
             onClick={() => setActiveTab("packages")}
             variant={activeTab === "packages" ? "default" : "outline"}
-            className={`${
-              activeTab === "packages"
-                ? "bg-linear-to-r from-tomato-red to-saffron-yellow text-white"
-                : "border-dark-green/30 text-dark-green"
-            } px-6 py-3 rounded-xl font-semibold`}
+            className={`${activeTab === "packages"
+              ? "bg-linear-to-r from-tomato-red to-saffron-yellow text-white"
+              : "border-dark-green/30 text-dark-green"
+              } px-6 py-3 rounded-xl font-semibold`}
           >
             <Package className="w-5 h-5 mr-2" />
             Browse Packages
@@ -307,11 +303,10 @@ export default function PartyOrdersPage() {
           <Button
             onClick={() => setActiveTab("my-orders")}
             variant={activeTab === "my-orders" ? "default" : "outline"}
-            className={`${
-              activeTab === "my-orders"
-                ? "bg-linear-to-r from-tomato-red to-saffron-yellow text-white"
-                : "border-dark-green/30 text-dark-green"
-            } px-6 py-3 rounded-xl font-semibold`}
+            className={`${activeTab === "my-orders"
+              ? "bg-linear-to-r from-tomato-red to-saffron-yellow text-white"
+              : "border-dark-green/30 text-dark-green"
+              } px-6 py-3 rounded-xl font-semibold`}
           >
             <List className="w-5 h-5 mr-2" />
             My Party Orders
@@ -374,11 +369,10 @@ export default function PartyOrdersPage() {
                     variant={
                       selectedCategory === category.id ? "default" : "outline"
                     }
-                    className={`${
-                      selectedCategory === category.id
-                        ? "bg-linear-to-r from-tomato-red to-saffron-yellow text-white"
-                        : "border-dark-green/30 text-dark-green hover:bg-dark-green/5"
-                    } px-6 py-3 rounded-xl font-semibold transition-all`}
+                    className={`${selectedCategory === category.id
+                      ? "bg-linear-to-r from-tomato-red to-saffron-yellow text-white"
+                      : "border-dark-green/30 text-dark-green hover:bg-dark-green/5"
+                      } px-6 py-3 rounded-xl font-semibold transition-all`}
                   >
                     <span className="mr-2">{category.icon}</span>
                     {category.label}
@@ -442,8 +436,7 @@ export default function PartyOrdersPage() {
                         <div className="flex items-center justify-between">
                           <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
                             <div className="flex items-center gap-1 text-white font-bold text-xl">
-                              <IndianRupee className="w-5 h-5" />
-                              {pkg.price}
+                              {formatPrice(pkg.pricePaise)}
                             </div>
                             <p className="text-white/80 text-xs">
                               {pkg.servings}
@@ -684,9 +677,8 @@ export default function PartyOrdersPage() {
                         {selectedPackage.description}
                       </p>
                       <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-                        <IndianRupee className="w-5 h-5" />
                         <span className="font-bold text-xl">
-                          {selectedPackage.price}
+                          {formatPrice(selectedPackage.pricePaise)}
                         </span>
                         <span className="text-white/80">
                           / {selectedPackage.servings}
@@ -893,21 +885,22 @@ export default function PartyOrdersPage() {
                               {selectedPackage.name} x {bookingData.quantity}
                             </span>
                             <span className="font-semibold text-dark-green">
-                              ₹
-                              {(
-                                selectedPackage.price * bookingData.quantity
-                              ).toLocaleString("en-IN")}
+                              {formatPrice(
+                                selectedPackage.pricePaise *
+                                bookingData.quantity,
+                              )}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-dark-green/70">Tax (5%)</span>
                             <span className="font-semibold text-dark-green">
-                              ₹
-                              {(
-                                selectedPackage.price *
-                                bookingData.quantity *
-                                0.05
-                              ).toLocaleString("en-IN")}
+                              {formatPrice(
+                                Math.round(
+                                  selectedPackage.pricePaise *
+                                  bookingData.quantity *
+                                  0.05,
+                                ),
+                              )}
                             </span>
                           </div>
                           <div className="border-t border-dark-green/20 pt-2 flex justify-between">
@@ -915,12 +908,13 @@ export default function PartyOrdersPage() {
                               Total
                             </span>
                             <span className="font-bold text-dark-green text-lg">
-                              ₹
-                              {(
-                                selectedPackage.price *
-                                bookingData.quantity *
-                                1.05
-                              ).toLocaleString("en-IN")}
+                              {formatPrice(
+                                Math.round(
+                                  selectedPackage.pricePaise *
+                                  bookingData.quantity *
+                                  1.05,
+                                ),
+                              )}
                             </span>
                           </div>
                         </div>

@@ -13,10 +13,10 @@ interface LoginBody {
 export async function POST(request: Request) {
   try {
     await connectToDatabase();
-    
+
     const body = await parseBody<LoginBody>(request);
     const validation = validateRequired(body, ["email", "password"]);
-    
+
     if (!validation.valid) {
       return apiError(
         "VALIDATION_ERROR",
@@ -25,20 +25,20 @@ export async function POST(request: Request) {
         validation.errors
       );
     }
-    
+
     const { email, password } = validation.data;
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return apiError("VALIDATION_ERROR", "Invalid email format", 400);
     }
-    
+
     // Find user by email (case-insensitive)
-    const user = await User.findOne({ 
-      email: email.toLowerCase() 
+    const user = await User.findOne({
+      email: email.toLowerCase()
     }).lean();
-    
+
     if (!user) {
       // Don't reveal if user exists - security best practice
       return apiError(
@@ -47,10 +47,10 @@ export async function POST(request: Request) {
         401
       );
     }
-    
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    
+
     if (!isPasswordValid) {
       // Don't reveal that email exists but password is wrong
       return apiError(
@@ -68,10 +68,10 @@ export async function POST(request: Request) {
         403
       );
     }
-    
+
     // Generate authentication token
-    const token = generateAuthToken(user._id.toString());
-    
+    const token = generateAuthToken(user._id.toString(), user.role || "user");
+
     return apiSuccess({
       token,
       user: {
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
         createdAt: user.createdAt,
       },
     });
-    
+
   } catch (error) {
     console.error("Login error:", error);
     return apiError("SERVER_ERROR", "Failed to login", 500);

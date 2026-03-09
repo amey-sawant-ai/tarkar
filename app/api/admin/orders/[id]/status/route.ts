@@ -31,6 +31,7 @@ export async function PATCH(
 
     if (!status || !validStatuses.includes(status)) {
       return apiError(
+        "BAD_REQUEST",
         `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
         400
       );
@@ -44,11 +45,11 @@ export async function PATCH(
 
     // Check if order is already delivered or cancelled
     if (order.status === "delivered" && status !== "delivered") {
-      return apiError("Cannot change status of delivered order", 400);
+      return apiError("BAD_REQUEST", "Cannot change status of delivered order", 400);
     }
 
     if (order.status === "cancelled" && status !== "cancelled") {
-      return apiError("Cannot change status of cancelled order", 400);
+      return apiError("BAD_REQUEST", "Cannot change status of cancelled order", 400);
     }
 
     // Update status
@@ -66,6 +67,6 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Error updating order status:", error);
-    return apiError("Failed to update order status", 500);
+    return apiError("SERVER_ERROR", "Failed to update order status", 500);
   }
 }

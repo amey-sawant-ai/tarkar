@@ -55,12 +55,12 @@ export const errors = {
   forbidden: () => apiError("FORBIDDEN", "Access denied", 403),
   notFound: (resource = "Resource") => apiError("NOT_FOUND", `${resource} not found`, 404),
   badRequest: (message = "Invalid request") => apiError("BAD_REQUEST", message, 400),
-  validationError: (details: Record<string, string>) => 
+  validationError: (details: Record<string, string>) =>
     apiError("VALIDATION_ERROR", "Validation failed", 400, details),
-  serverError: (message = "Internal server error") => 
+  serverError: (message = "Internal server error") =>
     apiError("SERVER_ERROR", message, 500),
   rateLimited: () => apiError("RATE_LIMITED", "Too many requests", 429),
-  conflict: (message = "Resource already exists") => 
+  conflict: (message = "Resource already exists") =>
     apiError("CONFLICT", message, 409),
 };
 
@@ -70,19 +70,19 @@ export function getUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.substring(7); // Remove "Bearer " prefix
-    const userId = verifyAuthToken(token);
-    if (userId) return userId;
+    const result = verifyAuthToken(token);
+    if (result) return result.userId;
   }
-  
+
   // Fallback to x-user-id header (for development/testing)
   const userIdHeader = request.headers.get("x-user-id");
   if (userIdHeader) return userIdHeader;
-  
+
   // Demo mode fallback - use the actual demo user ID from database
   if (process.env.ENABLE_DEMO_MODE === "true") {
     return "696caa01ebbb3c66c1a41fc7"; // Actual demo user ID
   }
-  
+
   return null;
 }
 
@@ -92,12 +92,15 @@ export function getOptionalUserId(request: Request): string | null {
 }
 
 // Require authentication
-export function requireAuth(request: Request): { userId: string } | NextResponse<ApiErrorResponse> {
-  const userId = getUserId(request);
-  if (!userId) {
-    return errors.unauthorized();
+export function requireAuth(request: Request): { userId: string; role: string } | NextResponse<ApiErrorResponse> {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.substring(7);
+    const result = verifyAuthToken(token);
+    if (result) return result;
   }
-  return { userId };
+
+  return errors.unauthorized();
 }
 
 // User role type
@@ -111,24 +114,24 @@ export async function requireAdmin(
   if (authResult instanceof NextResponse) {
     return authResult;
   }
-  
+
   // Import User model dynamically to avoid circular dependency
   const { User } = await import("@/models");
-  
+
   const user = await User.findById(authResult.userId).select("role isActive").lean();
-  
+
   if (!user) {
     return errors.unauthorized();
   }
-  
+
   if (!user.isActive) {
     return apiError("ACCOUNT_DISABLED", "Your account has been disabled", 403);
   }
-  
+
   if (user.role !== "admin") {
     return errors.forbidden();
   }
-  
+
   return { userId: authResult.userId, role: user.role as UserRole };
 }
 
@@ -140,23 +143,23 @@ export async function requireStaff(
   if (authResult instanceof NextResponse) {
     return authResult;
   }
-  
+
   const { User } = await import("@/models");
-  
+
   const user = await User.findById(authResult.userId).select("role isActive").lean();
-  
+
   if (!user) {
     return errors.unauthorized();
   }
-  
+
   if (!user.isActive) {
     return apiError("ACCOUNT_DISABLED", "Your account has been disabled", 403);
   }
-  
+
   if (user.role !== "admin" && user.role !== "staff") {
     return errors.forbidden();
   }
-  
+
   return { userId: authResult.userId, role: user.role as UserRole };
 }
 
@@ -166,12 +169,12 @@ export async function getUserWithRole(
 ): Promise<{ userId: string; role: UserRole } | null> {
   const userId = getUserId(request);
   if (!userId) return null;
-  
+
   const { User } = await import("@/models");
   const user = await User.findById(userId).select("role isActive").lean();
-  
+
   if (!user || !user.isActive) return null;
-  
+
   return { userId, role: (user.role || "user") as UserRole };
 }
 
@@ -179,7 +182,7 @@ export async function getUserWithRole(
 export function getPagination(request: Request, defaults = { page: 1, pageSize: 20 }) {
   const { searchParams } = new URL(request.url);
   const page = Math.max(1, parseInt(searchParams.get("page") || String(defaults.page), 10));
-  const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || String(defaults.pageSize), 10)));
+  const pageSize = Math.min(1000, Math.max(1, parseInt(searchParams.get("pageSize") || String(defaults.pageSize), 10)));
   return { page, pageSize, skip: (page - 1) * pageSize };
 }
 
@@ -215,18 +218,18 @@ export function validateRequired<T extends object>(
   if (!data) {
     return { valid: false, errors: { _body: "Request body is required" } };
   }
-  
+
   const errors: Record<string, string> = {};
   for (const field of fields) {
     if (data[field] === undefined || data[field] === null || data[field] === "") {
       errors[field as string] = `${String(field)} is required`;
     }
   }
-  
+
   if (Object.keys(errors).length > 0) {
     return { valid: false, errors };
   }
-  
+
   return { valid: true, data };
 }
 
@@ -245,14 +248,4 @@ export function slugify(text: string): string {
     .replace(/[^\w\s-]/g, "")
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-// Format price from paise to display
-export function formatPricePaise(paise: number): string {
-  return `₹${(paise / 100).toFixed(2)}`;
-}
-
-// Convert price to paise
-export function toPaise(rupees: number): number {
-  return Math.round(rupees * 100);
 }

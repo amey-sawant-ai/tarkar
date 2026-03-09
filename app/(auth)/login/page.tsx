@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,7 +9,8 @@ import { motion } from "motion/react";
 import LoginForm from "@/components/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function LoginPage() {
+// Child component that uses useSearchParams()
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -37,7 +38,7 @@ export default function LoginPage() {
         router.push(redirectUrl);
       }, 100);
     }
-  }, [isAuthenticated, isLoading, router, user]);
+  }, [isAuthenticated, isLoading, router, user, redirectParam]);
 
   // Show loading if checking auth state
   if (isLoading) {
@@ -140,5 +141,19 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// Parent page component with Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-warm-beige">
+      <div className="text-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

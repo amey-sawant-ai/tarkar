@@ -2,6 +2,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { Dish } from "@/models/Dish";
 import { apiSuccess, apiError } from "@/lib/api-helpers";
+import { CURRENCY } from "@/lib/constants";
 
 // Helper function to create slug from name
 function createSlug(name: string): string {
@@ -43,7 +44,7 @@ const dishesData = [
   { name: "Makai Palak", price: 190, category: "vegetable-curries", description: "Corn and spinach curry", isVeg: true },
   { name: "Kumbh Palak (Mushroom)", price: 190, category: "vegetable-curries", description: "Mushroom and spinach curry", isVeg: true },
   { name: "Kumbh Mutter Masala", price: 190, category: "vegetable-curries", description: "Mushroom and peas curry", isVeg: true },
-  
+
   // SUBS SECTION
   { name: "Achari Subz", price: 180, category: "vegetable-curries", description: "Mixed vegetables in pickle spices", isVeg: true },
   { name: "Subz Kolhapuri", price: 170, category: "vegetable-curries", description: "Kolhapuri style mixed vegetables", isVeg: true, isSpicy: true },
@@ -252,7 +253,7 @@ export async function POST() {
       tags: [dish.category.replace('-', ' '), dish.name.toLowerCase()],
       // Add half/full pricing if available
       ...(dish.half && dish.full && {
-        shortDescription: `Half: ₹${dish.half}, Full: ₹${dish.full}`,
+        shortDescription: `Half: ${CURRENCY.symbol}${dish.half}, Full: ${CURRENCY.symbol}${dish.full}`,
       }),
     }));
 

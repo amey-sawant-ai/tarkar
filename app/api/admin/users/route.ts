@@ -49,6 +49,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return apiError("Failed to fetch users", 500);
+    return apiError("SERVER_ERROR", "Failed to fetch users", 500);
   }
 }

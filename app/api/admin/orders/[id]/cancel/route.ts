@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import { Order, User, WalletTransaction } from "@/models";
 import { apiSuccess, apiError, requireAdmin, errors } from "@/lib/api-helpers";
+import { CURRENCY } from "@/lib/constants";
 
 // POST /api/admin/orders/[id]/cancel - Cancel order and optionally refund to wallet
 export async function POST(
@@ -20,7 +21,7 @@ export async function POST(
     const { reason, refundToWallet = true } = body;
 
     if (!reason || reason.trim().length < 3) {
-      return apiError("Cancellation reason is required (min 3 characters)", 400);
+      return apiError("BAD_REQUEST", "Cancellation reason is required (min 3 characters)", 400);
     }
 
     const order = await Order.findById(id);
@@ -31,12 +32,12 @@ export async function POST(
 
     // Check if order is already cancelled
     if (order.status === "cancelled") {
-      return apiError("Order is already cancelled", 400);
+      return apiError("BAD_REQUEST", "Order is already cancelled", 400);
     }
 
     // Check if order is already delivered - cannot cancel
     if (order.status === "delivered") {
-      return apiError("Cannot cancel a delivered order", 400);
+      return apiError("BAD_REQUEST", "Cannot cancel a delivered order", 400);
     }
 
     const totalPaise = order.billing.totalPaise || 0;
@@ -99,17 +100,17 @@ export async function POST(
       },
       refund: refundToWallet && totalPaise > 0
         ? {
-            amountPaise: totalPaise,
-            transactionId: refundTransaction?._id,
-            newWalletBalance,
-          }
+          amountPaise: totalPaise,
+          transactionId: refundTransaction?._id,
+          newWalletBalance,
+        }
         : null,
       message: refundToWallet && totalPaise > 0
-        ? `Order cancelled and ₹${(totalPaise / 100).toFixed(2)} refunded to wallet`
+        ? `Order cancelled and ${CURRENCY.symbol}${(totalPaise / 100).toFixed(2)} refunded to wallet`
         : "Order cancelled successfully",
     });
   } catch (error) {
     console.error("Error cancelling order:", error);
-    return apiError("Failed to cancel order", 500);
+    return apiError("SERVER_ERROR", "Failed to cancel order", 500);
   }
 }

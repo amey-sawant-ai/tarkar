@@ -21,7 +21,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface OrderItem {
@@ -168,7 +168,7 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  const formatPrice = (paise: number) => `₹${(paise / 100).toFixed(2)}`;
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -329,9 +329,9 @@ export default function AdminOrderDetailPage() {
           <div>
             <p className="font-semibold text-green-800">Refund Processed</p>
             <p className="text-sm text-green-600">
-              ₹{(refundInfo.amountPaise / 100).toFixed(2)} has been credited to
-              customer&apos;s wallet. New balance: ₹
-              {(refundInfo.newWalletBalance / 100).toFixed(2)}
+              {formatPrice(refundInfo.amountPaise)} has been credited to
+              customer&apos;s wallet. New balance:{" "}
+              {formatPrice(refundInfo.newWalletBalance)}
             </p>
           </div>
           <button
@@ -383,8 +383,7 @@ export default function AdminOrderDetailPage() {
                   <div>
                     <span className="font-medium">Refund to Wallet</span>
                     <p className="text-sm text-gray-500">
-                      Credit ₹
-                      {((order?.billing.totalPaise || 0) / 100).toFixed(2)} to
+                      Credit {formatPrice(order?.billing.totalPaise || 0)} to
                       customer&apos;s wallet
                     </p>
                   </div>
